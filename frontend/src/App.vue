@@ -1,47 +1,41 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <div class="container">
+    <div v-if="!isLoggedIn" class="login-box">
+      <h2>{{ isRegister ? "Регистрация" : "Вход" }}</h2>
+      <form @submit.prevent="handleSubmit">
+        <label for="email">Email:</label>
+        <input type="email" id="email" v-model="email" required />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" v-model="password" required />
+
+        <label for="role">Роль:</label>
+        <select id="role" v-model="role">
+          <option value="student">Студент</option>
+          <option value="teacher">Преподаватель</option>
+        </select>
+
+        <button type="submit">{{ isRegister ? "Зарегистрироваться" : "Войти" }}</button>
+      </form>
+
+      <p @click="toggleMode" class="switch-mode">
+        {{ isRegister ? "Уже есть аккаунт? Войти" : "Нет аккаунта? Зарегистрироваться" }}
+      </p>
+
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
-  </header>
 
-  <main>
-    <TheWelcome />
-  </main>
+    <div v-else class="user-box">
+      <h2>Добро пожаловать, {{ user.name }}!</h2>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Фамилия:</strong> {{ user.surname }}</p>
+      <p><strong>Возраст:</strong> {{ user.age }}</p>
+      <p><strong>Пол:</strong> {{ user.sex }}</p>
+      <button @click="logout">Выйти</button>
+    </div>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script src="js/AppVue.js"></script>
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+<style src="css/AppVue.css"></style>

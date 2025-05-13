@@ -1,13 +1,33 @@
 <!DOCTYPE html>
-<html lang="">
-  <head>
+<html lang="ru">
+
+<head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+    <title>Вход</title>
+    <link rel="stylesheet" href="src/css/Style.css">
+</head>
+
+<body>
+
+<div class="container">
+    <div class="login-box">
+        <h2>Вход</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Пароль">
+
+        <select id="role">
+            <option value="student">Студент</option>
+            <option value="teacher">Преподаватель</option>
+        </select>
+
+        <button onclick="login()">Войти</button>
+        <p>Нет аккаунта? <a href="#">Зарегистрироваться</a></p>
+        <p id="error-message" style="color: red; display: none;">Ошибка входа</p>
+    </div>
+</div>
+
+<script src="src/js/IndexApp.js"> </script>
+
+</body>
 </html>

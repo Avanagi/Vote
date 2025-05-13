@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Профиль</title>
+    <link href="../css/Style.css" rel="stylesheet">
+    <link href="../css/Profile.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="user-info">
+    <h3>Пользователь</h3>
+    <p><strong>Имя:</strong> <span id="name">Загрузка...</span></p>
+    <p><strong>Фамилия:</strong> <span id="surname">Загрузка...</span></p>
+    <p><strong>Отчество:</strong> <span id="lastName">Загрузка...</span></p>
+    <p><strong>Пол:</strong> <span id="sex">Загрузка...</span></p>
+    <p><strong>Возраст:</strong> <span id="age">Загрузка...</span></p>
+    <p><strong>Email:</strong> <span id="email">Загрузка...</span></p>
+    <p><strong>Роль:</strong> <span id="role">Загрузка...</span></p>
+    <button onclick="logout()">Выйти</button>
+</div>
+
+<div class="polls-container">
+    <h2>Опросы</h2>
+    <p id="polls-count">Доступно 0 опросов</p>
+    <div id="polls-list">
+
+    </div>
+</div>
+
+<script src="../js/Profile.js" defer></script>
+
+</body>
+</html>
