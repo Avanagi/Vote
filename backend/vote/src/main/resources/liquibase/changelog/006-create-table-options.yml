@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-table-options
+      author: Roman
+      changes:
+        - createTable:
+            tableName: options
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: poll_id
+                  type: BIGSERIAL
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_options_poll
+                    references: polls(id)
+                    onDelete: CASCADE
+              - column:
+                  name: option_text
+                  type: TEXT
+                  constraints:
+                    nullable: false

@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-insert-teacher
+      author: Roman
+      changes:
+        - insert:
+            tableName: teachers
+            columns:
+              - column:
+                  name: name
+                  value: "Ivan"
+              - column:
+                  name: surname
+                  value: "Ivanov"
+              - column:
+                  name: last_name
+                  value: "Ivanovich"
+              - column:
+                  name: age
+                  valueNumeric: 45
+              - column:
+                  name: sex
+                  value: "Male"
+              - column:
+                  name: email
+                  value: "ivan.ivanov@example.com"
+              - column:
+                  name: password
+                  value: "$2a$10$examplehash1"
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: last_updated_at
+                  valueComputed: CURRENT_TIMESTAMP
