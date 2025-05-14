@@ -18,12 +18,14 @@ public class OptionController {
         this.optionService = optionService;
     }
 
+    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/{pollId}")
     public ResponseEntity<OptionDto> createOption(@PathVariable Long pollId, @RequestBody OptionDto optionDTO) {
         OptionDto createdOption = optionService.createOption(pollId, optionDTO);
         return new ResponseEntity<>(createdOption, HttpStatus.CREATED);
     }
 
+    @CrossOrigin(origins = "http://localhost:5173")
     @GetMapping("/poll/{pollId}")
     public ResponseEntity<List<OptionDto>> getOptionsByPollId(@PathVariable Long pollId) {
         List<OptionDto> options = optionService.getOptionsByPollId(pollId);

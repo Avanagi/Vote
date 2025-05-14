@@ -36,7 +36,7 @@ public class StudentEntity {
     @Column(nullable = false)
     private Sex sex;
 
-    @Column(nullable = false)
+    @Column(name = "student_group", nullable = false)
     private String group;
 
     @Column(nullable = false, unique = true)

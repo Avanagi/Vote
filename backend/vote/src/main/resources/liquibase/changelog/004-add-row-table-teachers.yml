@@ -26,7 +26,7 @@ databaseChangeLog:
                   value: "ivan.ivanov@example.com"
               - column:
                   name: password
-                  value: "$2a$10$examplehash1"
+                  value: "75c1b397711075cd7c7143f58dd4f2d5c3c729ec36b092c411403364ce3e691e"
               - column:
                   name: created_at
                   valueComputed: CURRENT_TIMESTAMP

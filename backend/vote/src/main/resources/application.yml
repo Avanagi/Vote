@@ -2,7 +2,7 @@ spring:
   application:
     name: VotingServer
   datasource:
-    url: jdbc:postgresql://localhost:5432/Voting
+    url: jdbc:postgresql://localhost:5432/voting
     password: root
     username: postgres
   jpa:

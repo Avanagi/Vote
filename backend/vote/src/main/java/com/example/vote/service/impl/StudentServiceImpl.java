@@ -6,6 +6,7 @@ import com.example.vote.entity.StudentEntity;
 import com.example.vote.mapper.StudentRegistrationMapper;
 import com.example.vote.mapper.StudentResponseMapper;
 import com.example.vote.repository.StudentRepository;
+import com.example.vote.service.SHA256HashingService;
 import com.example.vote.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final StudentResponseMapper studentResponseMapper;
     private final StudentRegistrationMapper studentRegisterMapper;
+    private final SHA256HashingService hashingService;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,8 +44,10 @@ public class StudentServiceImpl implements StudentService {
     public StudentResponseDto getStudentByEmailAndPassword(String email, String password) {
         log.info("Getting student by email and password: {}", email);
         StudentEntity studentEntity = studentRepository.findByEmail(email);
-        if (studentEntity != null && studentEntity.getPassword().equals(password)) {
-            return studentResponseMapper.toDto(studentEntity);
+        if (studentEntity != null) {
+            if (hashingService.validateSHA256Hash(password, studentEntity.getPassword())) {
+                return studentResponseMapper.toDto(studentEntity);
+            }
         }
         return null;
     }
