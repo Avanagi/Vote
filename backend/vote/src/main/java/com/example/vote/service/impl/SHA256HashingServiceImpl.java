@@ -1,5 +1,6 @@
 package com.example.vote.service.impl;
 
+import com.example.vote.exception.hash.HashingException;
 import com.example.vote.service.SHA256HashingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,8 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-@Slf4j
 @Service
+@Slf4j
 public class SHA256HashingServiceImpl implements SHA256HashingService {
     @Override
     public String generateSHA256Hash(String text) {
@@ -25,7 +26,7 @@ public class SHA256HashingServiceImpl implements SHA256HashingService {
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException exception) {
-            throw new RuntimeException(exception);
+            throw new HashingException("Failed to generate SHA-256 hash.", exception);
         }
     }
 
@@ -36,5 +37,4 @@ public class SHA256HashingServiceImpl implements SHA256HashingService {
         log.info("Saved hash: {}", savedHash);
         return receivedHash.equals(savedHash);
     }
-
 }

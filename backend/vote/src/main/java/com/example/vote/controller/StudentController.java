@@ -2,9 +2,11 @@ package com.example.vote.controller;
 
 import com.example.vote.dto.StudentRegistrationDto;
 import com.example.vote.dto.StudentResponseDto;
+import com.example.vote.exception.student.*;
 import com.example.vote.service.StudentService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,53 +14,100 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/students")
+@CrossOrigin(origins = "http://localhost:5173")
 public class StudentController {
 
     private final StudentService studentService;
 
-    @CrossOrigin(origins = "http://localhost:5173")
+    public StudentController(StudentService studentService) {
+        this.studentService = studentService;
+    }
+
     @GetMapping
     public List<StudentResponseDto> getAllStudents() {
         log.info("Get all students");
         return studentService.getAllStudents();
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @GetMapping("/{id}")
-    public StudentResponseDto getStudentById(@PathVariable Long id) {
+    public ResponseEntity<StudentResponseDto> getStudentById(@PathVariable Long id) {
         log.info("Get student by id: {}", id);
-        return studentService.getStudentById(id);
+        try {
+            StudentResponseDto student = studentService.getStudentById(id);
+            return new ResponseEntity<>(student, HttpStatus.OK);
+        } catch (StudentNotFoundException ex) {
+            log.error("Student not found: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/loadStudent")
-    public StudentResponseDto getStudent(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<StudentResponseDto> getStudent(@RequestBody Map<String, String> credentials) {
         log.info("Get student by credentials");
-        return studentService.getStudentByEmailAndPassword(credentials.get("email"), credentials.get("password"));
+        try {
+            StudentResponseDto student = studentService
+                    .getStudentByEmailAndPassword(credentials.get("email"), credentials.get("password"));
+            if (student != null) {
+                return new ResponseEntity<>(student, HttpStatus.OK);
+            } else {
+                throw new InvalidCredentialsException();
+            }
+        } catch (StudentNotFoundException | InvalidCredentialsException ex) {
+            log.error("Authentication failed: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping
-    public StudentRegistrationDto saveStudent(@RequestBody StudentRegistrationDto studentRegistrationDto) {
+    public ResponseEntity<StudentRegistrationDto> saveStudent(@RequestBody StudentRegistrationDto studentRegistrationDto) {
         log.info("Received request: {}", studentRegistrationDto);
-        return studentService.saveStudent(studentRegistrationDto);
+        try {
+            StudentRegistrationDto savedStudent = studentService.saveStudent(studentRegistrationDto);
+            return new ResponseEntity<>(savedStudent, HttpStatus.CREATED);
+        } catch (StudentEmailAlreadyExistsException ex) {
+            log.error("Email already exists: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (StudentSaveFailedException ex) {
+            log.error("Failed to save student: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @DeleteMapping("/{id}")
-    public void deleteStudentById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStudentById(@PathVariable Long id) {
         log.info("Delete student by id: {}", id);
-        studentService.deleteStudentById(id);
+        try {
+            studentService.deleteStudentById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (StudentNotFoundException ex) {
+            log.error("Student not found for deletion: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (StudentDeleteFailedException ex) {
+            log.error("Failed to delete student: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/update/{id}")
-    public void updateStudentById(@PathVariable Long id, @RequestBody StudentResponseDto studentDTO) {
+    public ResponseEntity<Void> updateStudentById(@PathVariable Long id, @RequestBody StudentResponseDto studentDTO) {
         log.info("Update student by id: {}. Parameters: {}", id, studentDTO);
-        studentService.updateStudentById(id, studentDTO);
+        try {
+            studentService.updateStudentById(id, studentDTO);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (StudentNotFoundException ex) {
+            log.error("Student not found for update: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (StudentUpdateFailedException ex) {
+            log.error("Failed to update student: {}", ex.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        log.error("An unexpected error occurred", ex);
+        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
 

@@ -37,7 +37,7 @@ public class StudentEntity {
     private Sex sex;
 
     @Column(name = "student_group", nullable = false)
-    private String group;
+    private String studentGroup;
 
     @Column(nullable = false, unique = true)
     private String email;

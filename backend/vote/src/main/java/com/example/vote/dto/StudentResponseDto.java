@@ -1,6 +1,7 @@
 package com.example.vote.dto;
 
 import com.example.vote.entity.Sex;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -39,5 +40,4 @@ public class StudentResponseDto {
     @NotNull(message = "Group is required")
     @Pattern(regexp = "^[А-Яа-яЁё]{1,2}-\\d{2}-\\d{2}$")
     private String studentGroup;
-
 }

@@ -3,17 +3,22 @@ package com.example.vote.service.impl;
 import com.example.vote.entity.PollEntity;
 import com.example.vote.entity.StudentEntity;
 import com.example.vote.entity.StudentPollEntity;
+import com.example.vote.exception.studentPoll.PollNotFoundForVoteException;
+import com.example.vote.exception.studentPoll.StudentNotFoundForVoteException;
+import com.example.vote.exception.studentPoll.VotingFailedException;
 import com.example.vote.repository.PollRepository;
-import com.example.vote.repository.StudentRepository;
 import com.example.vote.repository.StudentPollRepository;
+import com.example.vote.repository.StudentRepository;
 import com.example.vote.service.StudentPollService;
-
-import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Slf4j
 public class StudentPollServiceImpl implements StudentPollService {
     private final StudentPollRepository userPollRepository;
 
@@ -21,28 +26,38 @@ public class StudentPollServiceImpl implements StudentPollService {
 
     private final StudentRepository studentRepository;
 
-    public StudentPollServiceImpl(StudentPollRepository userPollRepository, PollRepository pollRepository, StudentRepository studentRepository) {
+    public StudentPollServiceImpl(StudentPollRepository userPollRepository, PollRepository pollRepository,
+                                  StudentRepository studentRepository) {
         this.userPollRepository = userPollRepository;
         this.pollRepository = pollRepository;
         this.studentRepository = studentRepository;
     }
 
+    @Transactional
     public void markPollAsVoted(Long userId, Long pollId) {
+        log.info("Marking poll {} as voted by user {}", pollId, userId);
         StudentEntity student = studentRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Студент с ID " + userId + " не найден"));
+                .orElseThrow(() -> new StudentNotFoundForVoteException(userId));
 
         PollEntity poll = pollRepository.findById(pollId)
-                .orElseThrow(() -> new EntityNotFoundException("Опрос с ID " + pollId + " не найден"));
+                .orElseThrow(() -> new PollNotFoundForVoteException(pollId));
 
         StudentPollEntity userPoll = new StudentPollEntity();
         userPoll.setStudent(student);
         userPoll.setPoll(poll);
 
-        userPollRepository.save(userPoll);
+        try {
+            userPollRepository.save(userPoll);
+            log.info("Poll {} marked as voted by user {} successfully.", pollId, userId);
+        } catch (DataAccessException e) {
+            log.error("Error marking poll {} as voted by user {}: {}", pollId, userId, e.getMessage());
+            throw new VotingFailedException("Failed to record vote due to database error.", e);
+        }
     }
 
+    @Transactional(readOnly = true)
     public List<PollEntity> getAvailablePolls(Long userId) {
+        log.info("Getting available polls for user {}", userId);
         return pollRepository.findAvailablePollsForUser(userId);
     }
 }
-
