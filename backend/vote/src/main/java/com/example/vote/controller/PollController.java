@@ -16,7 +16,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/polls")
-@CrossOrigin(origins = "http://localhost:5173")
 public class PollController {
 
     private final PollService pollService;

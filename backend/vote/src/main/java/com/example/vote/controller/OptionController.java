@@ -14,7 +14,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/options")
-@CrossOrigin(origins = "http://localhost:5173")
 public class OptionController {
 
     private final OptionService optionService;

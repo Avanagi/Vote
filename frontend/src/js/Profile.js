@@ -26,6 +26,7 @@ async function loadUserData() {
     } else if (user.role === "teacher") {
         document.querySelector(".student-content").style.display = "none";
         document.querySelector(".teacher-content").style.display = "block";
+        loadPollResults();
     }
 }
 
@@ -89,13 +90,16 @@ async function vote(userId, pollId, optionId, optionText) {
     try {
         const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(transaction)
         });
 
         if (!blockchainResponse.ok) {
             throw new Error("Ошибка добавления транзакции в блокчейн");
         }
+
         const voteResponse = await fetch(`http://localhost:8080/polls/${pollId},${userId}/vote`, {
             method: "POST"
         });
@@ -125,7 +129,9 @@ async function createPoll() {
     }
     pollCreationError.style.display = "none";
 
-    const options = optionsText.map(text => ({ optionText: text }));
+    const options = optionsText.map(text => ({
+        optionText: text
+    }));
 
     const pollData = {
         question: question,
@@ -157,6 +163,91 @@ async function createPoll() {
         console.error("Ошибка создания опроса:", error);
         pollCreationError.style.display = "block";
         pollCreationError.textContent = "Ошибка создания опроса: " + error.message;
+    }
+}
+
+async function loadPollResults() {
+    function optionBar(totalVotes, votes, optionResult, optionsResultsContainer) {
+        const percentage = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(2) : 0;
+        const percentageBar = document.createElement("div");
+        percentageBar.classList.add("option-result-bar");
+        percentageBar.style.width = `${Math.min(percentage, 100)}%`;
+        percentageBar.textContent = `${percentage}%`;
+
+        optionResult.appendChild(percentageBar);
+        optionsResultsContainer.appendChild(optionResult);
+    }
+
+    try {
+        const pollsResponse = await fetch("http://localhost:8080/polls");
+        if (!pollsResponse.ok) throw new Error("Failed to fetch polls");
+        const polls = await pollsResponse.json();
+        const pollsResultsContainer = document.getElementById("polls-results");
+        pollsResultsContainer.innerHTML = "";
+
+        if (polls.length === 0) {
+            pollsResultsContainer.innerHTML = "<p>Нет доступных опросов для отображения результатов.</p>";
+            return;
+        }
+
+        for (const poll of polls) {
+            const pollResultItem = document.createElement("div");
+            pollResultItem.classList.add("poll-item");
+            pollResultItem.textContent = poll.question;
+
+            const resultsResponse = await fetch(`http://localhost:8079/blockchain/results?pollId=${poll.id}`);
+            if (!resultsResponse.ok) throw new Error(`Failed to fetch results for poll ${poll.id}`);
+            const resultsData = await resultsResponse.json();
+
+            const optionsResultsContainer = document.createElement("div");
+            optionsResultsContainer.classList.add("poll-options-results");
+            optionsResultsContainer.style.display = "none";
+
+            if (resultsData && Object.keys(resultsData).length > 0) {
+                const totalVotes = Object.values(resultsData).reduce((sum, votes) => sum + votes, 0);
+
+                const optionsResponse = await fetch(`http://localhost:8080/polls/${poll.id}`);
+                if (!optionsResponse.ok) throw new Error(`Failed to fetch options for poll ${poll.id}`);
+                const pollData = await optionsResponse.json();
+                const optionsMap = new Map();
+                if (pollData.options) {
+                    pollData.options.forEach(option => {
+                        optionsMap.set(option.id, option.optionText);
+                    });
+                }
+
+                for (const optionId in resultsData) {
+                    const votes = resultsData[optionId];
+                    const optionText = optionsMap.get(parseInt(optionId)); // Get option text
+                    if (optionText) {
+                        const optionResult = document.createElement("div");
+                        optionResult.classList.add("option-result");
+                        optionResult.textContent = `${optionText}: `;
+
+                        optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
+                    } else {
+                        const optionResult = document.cёreateElement("div");
+                        optionResult.classList.add("option-result");
+                        optionResult.textContent = `Option ${optionId}: `;
+
+                        optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
+                    }
+
+                }
+            } else {
+                optionsResultsContainer.innerHTML = "<p>No votes have been cast for this poll yet.</p>";
+            }
+
+            pollResultItem.appendChild(optionsResultsContainer);
+            pollResultItem.addEventListener("click", () => {
+                optionsResultsContainer.style.display =
+                    optionsResultsContainer.style.display === "none" ? "block" : "none";
+            });
+            pollsResultsContainer.appendChild(pollResultItem);
+        }
+    } catch (error) {
+        console.error("Error loading poll results:", error);
+        document.getElementById("polls-results").innerHTML = "<p>Failed to load poll results.</p>";
     }
 }
 
