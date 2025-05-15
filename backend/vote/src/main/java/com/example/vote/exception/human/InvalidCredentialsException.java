@@ -1,4 +1,4 @@
-package com.example.vote.exception.student;
+package com.example.vote.exception.human;
 
 public class InvalidCredentialsException extends RuntimeException {
 

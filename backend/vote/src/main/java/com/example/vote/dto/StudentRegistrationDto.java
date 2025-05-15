@@ -23,7 +23,7 @@ public class StudentRegistrationDto {
     private String lastName;
 
     @NotNull
-    @DecimalMin(value = "0", message = "Age can't be negative")
+    @DecimalMin(value = "1", message = "Age can't be negative")
     private int age;
 
     @NotNull(message = "Sex is required")

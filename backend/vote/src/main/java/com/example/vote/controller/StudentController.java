@@ -2,7 +2,7 @@ package com.example.vote.controller;
 
 import com.example.vote.dto.StudentRegistrationDto;
 import com.example.vote.dto.StudentResponseDto;
-import com.example.vote.exception.student.*;
+import com.example.vote.exception.human.*;
 import com.example.vote.service.StudentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,7 +36,7 @@ public class StudentController {
         try {
             StudentResponseDto student = studentService.getStudentById(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
-        } catch (StudentNotFoundException ex) {
+        } catch (HumanNotFoundException ex) {
             log.error("Student not found: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -53,7 +53,7 @@ public class StudentController {
             } else {
                 throw new InvalidCredentialsException();
             }
-        } catch (StudentNotFoundException | InvalidCredentialsException ex) {
+        } catch (HumanNotFoundException | InvalidCredentialsException ex) {
             log.error("Authentication failed: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -65,10 +65,10 @@ public class StudentController {
         try {
             StudentRegistrationDto savedStudent = studentService.saveStudent(studentRegistrationDto);
             return new ResponseEntity<>(savedStudent, HttpStatus.CREATED);
-        } catch (StudentEmailAlreadyExistsException ex) {
+        } catch (HumanEmailAlreadyExistsException ex) {
             log.error("Email already exists: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (StudentSaveFailedException ex) {
+        } catch (HumanSaveFailedException ex) {
             log.error("Failed to save student: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -80,10 +80,10 @@ public class StudentController {
         try {
             studentService.deleteStudentById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (StudentNotFoundException ex) {
+        } catch (HumanNotFoundException ex) {
             log.error("Student not found for deletion: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (StudentDeleteFailedException ex) {
+        } catch (HumanDeleteFailedException ex) {
             log.error("Failed to delete student: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -95,10 +95,10 @@ public class StudentController {
         try {
             studentService.updateStudentById(id, studentDTO);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (StudentNotFoundException ex) {
+        } catch (HumanNotFoundException ex) {
             log.error("Student not found for update: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (StudentUpdateFailedException ex) {
+        } catch (HumanUpdateFailedException ex) {
             log.error("Failed to update student: {}", ex.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
