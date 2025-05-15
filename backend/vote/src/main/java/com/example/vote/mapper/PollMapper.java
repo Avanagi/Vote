@@ -6,7 +6,7 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {OptionMapper.class})
 public interface PollMapper extends BaseMapper<PollEntity, PollDto> {
 
     @Named("toDtoWithoutOptions")

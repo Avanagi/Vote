@@ -10,8 +10,8 @@ import lombok.*;
 @AllArgsConstructor
 public class OptionDto {
 
-    @NotNull(message = "Id is required")
-    private Long id;
+    @NotNull(message = "PollId is required")
+    private Long pollId;
 
     @NotNull(message = "OptionText is required")
     private String optionText;

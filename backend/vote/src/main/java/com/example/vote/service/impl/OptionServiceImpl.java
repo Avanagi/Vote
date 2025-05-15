@@ -9,6 +9,7 @@ import com.example.vote.mapper.OptionMapper;
 import com.example.vote.repository.OptionRepository;
 import com.example.vote.repository.PollRepository;
 import com.example.vote.service.OptionService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -17,22 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@AllArgsConstructor
+@Service
 public class OptionServiceImpl implements OptionService {
 
     private final OptionRepository optionRepository;
     private final PollRepository pollRepository;
     private final OptionMapper optionMapper;
 
-    public OptionServiceImpl(OptionRepository optionRepository, PollRepository pollRepository,
-                             OptionMapper optionMapper) {
-        this.optionRepository = optionRepository;
-        this.pollRepository = pollRepository;
-        this.optionMapper = optionMapper;
-    }
-
     @Override
+    @Transactional
     public OptionDto createOption(Long pollId, OptionDto optionDTO) {
         log.info("Creating option for poll with ID {}: {}", pollId, optionDTO.getOptionText());
         PollEntity poll = pollRepository.findById(pollId)

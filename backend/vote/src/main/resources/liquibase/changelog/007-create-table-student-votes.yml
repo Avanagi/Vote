@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 008-create-table-student-votes
+      id: 007-create-table-student-votes
       author: Roman
       changes:
         - createTable:

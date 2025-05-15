@@ -10,6 +10,7 @@ import com.example.vote.repository.PollRepository;
 import com.example.vote.repository.StudentPollRepository;
 import com.example.vote.repository.StudentRepository;
 import com.example.vote.service.StudentPollService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -17,21 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
+@AllArgsConstructor
 @Slf4j
+@Service
 public class StudentPollServiceImpl implements StudentPollService {
+
     private final StudentPollRepository userPollRepository;
-
     private final PollRepository pollRepository;
-
     private final StudentRepository studentRepository;
-
-    public StudentPollServiceImpl(StudentPollRepository userPollRepository, PollRepository pollRepository,
-                                  StudentRepository studentRepository) {
-        this.userPollRepository = userPollRepository;
-        this.pollRepository = pollRepository;
-        this.studentRepository = studentRepository;
-    }
 
     @Transactional
     public void markPollAsVoted(Long userId, Long pollId) {
