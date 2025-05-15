@@ -1,0 +1,19 @@
+package com.example.vote.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OptionDto {
+
+    @NotNull(message = "PollId is required")
+    private Long pollId;
+
+    @NotNull(message = "OptionText is required")
+    private String optionText;
+
+}
