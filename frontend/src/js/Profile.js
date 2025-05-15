@@ -11,7 +11,7 @@ async function loadUserData() {
 
     document.getElementById("name").textContent = user.name || "Неизвестно";
     document.getElementById("surname").textContent = user.surname || "Неизвестно";
-    document.getElementById("lastName").textContent = user.last_name || "Неизвестно";
+    document.getElementById("lastName").textContent = user.lastName || "Неизвестно";
     document.getElementById("sex").textContent = user.sex || "Неизвестно";
     document.getElementById("age").textContent = user.age || "Неизвестно";
     document.getElementById("email").textContent = user.email || "Неизвестно";
@@ -19,14 +19,13 @@ async function loadUserData() {
 
     if (user.role === "student") {
         document.getElementById("student-group-info").style.display = "block";
-        document.getElementById("studentGroup").textContent = user.student_group || "Неизвестно";
+        document.getElementById("studentGroup").textContent = user.studentGroup || "Неизвестно";
         document.querySelector(".student-content").style.display = "block";
         document.querySelector(".teacher-content").style.display = "none";
-        loadStudentPolls(user.id); // Загрузка опросов для студента
+        loadStudentPolls(user.id);
     } else if (user.role === "teacher") {
         document.querySelector(".student-content").style.display = "none";
         document.querySelector(".teacher-content").style.display = "block";
-        // Загрузка данных преподавателя, если необходимо
     }
 }
 
@@ -36,7 +35,7 @@ async function loadStudentPolls(userId) {
         if (!response.ok) throw new Error("Ошибка загрузки опросов");
 
         const polls = await response.json();
-        const pollsCountElement = document.getElementById("student-polls-count"); // Correct ID
+        const pollsCountElement = document.getElementById("student-polls-count");
         pollsCountElement.textContent = `${polls.length}`;
         const pollsList = document.getElementById("polls-list");
         pollsList.innerHTML = polls.length === 0 ? "<p>Нет доступных опросов</p>" : "";
@@ -62,7 +61,7 @@ async function loadStudentPolls(userId) {
                     optionButton.textContent = option.optionText;
 
                     optionButton.addEventListener("click", () => {
-                        vote(userId, poll.id, option.id, option.optionText); // Pass userId
+                        vote(userId, poll.id, option.id, option.optionText);
                     });
 
                     optionsContainer.appendChild(optionButton);
@@ -79,16 +78,16 @@ async function loadStudentPolls(userId) {
     }
 }
 
-async function vote(userId, pollId, optionId, optionText) { // Add userId
+async function vote(userId, pollId, optionId, optionText) {
     const transaction = {
-        studentId: userId.toString(), // Use userId
+        studentId: userId.toString(),
         pollId: pollId,
         optionId: optionId,
         timestamp: new Date().getTime()
     };
 
     try {
-        const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
+        /*const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(transaction)
@@ -96,9 +95,9 @@ async function vote(userId, pollId, optionId, optionText) { // Add userId
 
         if (!blockchainResponse.ok) {
             throw new Error("Ошибка добавления транзакции в блокчейн");
-        }
+        }*/
 
-        const voteResponse = await fetch(`http://localhost:8080/polls/${pollId},${userId}/vote`, { // Use userId
+        const voteResponse = await fetch(`http://localhost:8080/polls/${pollId},${userId}/vote`, {
             method: "POST"
         });
 
@@ -120,7 +119,6 @@ async function createPoll() {
     const pollCreationMessage = document.getElementById("poll-creation-message");
     const pollCreationError = document.getElementById("poll-creation-error");
 
-
     if (!question || optionsText.length < 2) {
         pollCreationError.style.display = "block";
         pollCreationError.textContent = "Пожалуйста, введите вопрос и не менее двух вариантов ответа.";
@@ -128,9 +126,11 @@ async function createPoll() {
     }
     pollCreationError.style.display = "none";
 
+    const options = optionsText.map(text => ({ optionText: text }));
 
     const pollData = {
         question: question,
+        options: options
     };
 
     try {
@@ -148,28 +148,6 @@ async function createPoll() {
         }
 
         const poll = await pollResponse.json();
-        const pollId = poll.id;
-
-        // Создаем варианты ответов
-        for (const optionText of optionsText) {
-            const optionData = {
-                pollId: pollId,
-                optionText: optionText,
-            };
-
-            const optionResponse = await fetch("http://localhost:8080/options", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(optionData),
-            });
-
-            if (!optionResponse.ok) {
-                const errorData = await optionResponse.json();
-                throw new Error(errorData.message || "Ошибка при создании варианта ответа");
-            }
-        }
 
         pollCreationMessage.style.display = "block";
         pollCreationMessage.textContent = "Опрос успешно создан!";
