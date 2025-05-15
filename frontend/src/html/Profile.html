@@ -7,6 +7,49 @@
     <title>Профиль</title>
     <link href="../css/Style.css" rel="stylesheet">
     <link href="../css/Profile.css" rel="stylesheet">
+    <style>
+        .poll-creation-form, .poll-results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .poll-creation-form h3, .poll-results h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .poll-creation-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .poll-creation-form input[type="text"],
+        .poll-creation-form textarea,
+        .poll-creation-form button {
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .poll-creation-form button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .poll-creation-form button:hover {
+            background-color: #1e7e34;
+        }
+    </style>
 </head>
 
 <body>
@@ -20,14 +63,35 @@
     <p><strong>Возраст:</strong> <span id="age">Загрузка...</span></p>
     <p><strong>Email:</strong> <span id="email">Загрузка...</span></p>
     <p><strong>Роль:</strong> <span id="role">Загрузка...</span></p>
+    <p id="student-group-info" style="display: none;"><strong>Группа:</strong> <span id="studentGroup">Загрузка...</span></p>
     <button onclick="logout()">Выйти</button>
 </div>
 
-<div class="polls-container">
-    <h2>Опросы</h2>
-    <p id="polls-count">Доступно 0 опросов</p>
+<div class="student-content">
+    <h2>Доступные опросы</h2>
+    <p id="polls-count">Доступно <span id="student-polls-count">0</span> опросов</p>
     <div id="polls-list">
+    </div>
+</div>
 
+<div class="teacher-content" style="display: none;">
+    <h2>Информация преподавателя</h2>
+    <div class="poll-creation-form">
+        <h3>Создать опрос</h3>
+        <label for="poll-question">Вопрос:</label>
+        <textarea id="poll-question" placeholder="Введите текст вопроса"></textarea>
+
+        <label for="poll-options">Варианты ответов (каждый на новой строке):</label>
+        <textarea id="poll-options" placeholder="Вариант 1&#10;Вариант 2&#10;..."></textarea>
+
+        <button onclick="createPoll()">Создать опрос</button>
+        <p id="poll-creation-message" style="color: green; display: none;">Опрос успешно создан!</p>
+        <p id="poll-creation-error" style="color: red; display: none;">Ошибка создания опроса.</p>
+    </div>
+
+    <div class="poll-results">
+        <h3>Результаты опросов</h3>
+        <p>Функционал просмотра результатов опросов находится в разработке.</p>
     </div>
 </div>
 

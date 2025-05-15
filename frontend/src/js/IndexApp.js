@@ -45,7 +45,7 @@ async function registerUser() {
     const userData = {
         name: name,
         surname: surname,
-        last_name: last_name || null,
+        lastName: last_name || null,
         age: parseInt(age),
         sex: sex,
         email: email,
@@ -55,7 +55,7 @@ async function registerUser() {
 
     let apiUrl = '';
     if (role === 'student') {
-        userData.student_group = student_group;
+        userData.studentGroup = student_group;
         apiUrl = 'http://localhost:8080/students';
     } else if (role === 'teacher') {
         apiUrl = 'http://localhost:8080/teachers';
@@ -84,7 +84,6 @@ async function registerUser() {
         const data = await response.json();
         console.log('Успешная регистрация:', data);
         alert('Регистрация прошла успешно!');
-        // Переключить обратно на форму входа
         document.querySelector('.login-box').style.display = 'block';
         document.querySelector('.registration-box').style.display = 'none';
     } catch (error) {
@@ -107,7 +106,6 @@ document.getElementById('show-login-form').addEventListener('click', function(ev
     document.querySelector('.registration-box').style.display = 'none';
 });
 
-// Показать/скрыть поле группы в зависимости от выбранной роли при регистрации
 document.getElementById('register-role').addEventListener('change', function() {
     const studentGroupField = document.getElementById('register-student_group');
     if (this.value === 'student') {
