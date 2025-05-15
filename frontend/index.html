@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход</title>
+    <title>Вход / Регистрация</title>
     <link rel="stylesheet" href="src/css/Style.css">
+    <style>
+        .registration-box {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -13,21 +18,41 @@
 <div class="container">
     <div class="login-box">
         <h2>Вход</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Пароль">
-
-        <select id="role">
+        <input type="email" id="login-email" placeholder="Email">
+        <input type="password" id="login-password" placeholder="Пароль">
+        <select id="login-role">
             <option value="student">Студент</option>
             <option value="teacher">Преподаватель</option>
         </select>
-
         <button onclick="login()">Войти</button>
-        <p>Нет аккаунта? <a href="#">Зарегистрироваться</a></p>
-        <p id="error-message" style="color: red; display: none;">Ошибка входа</p>
+        <p>Нет аккаунта? <a href="#" id="show-register-form">Зарегистрироваться</a></p>
+        <p id="login-error-message" style="color: red; display: none;">Ошибка входа</p>
+    </div>
+
+    <div class="registration-box">
+        <h2>Регистрация</h2>
+        <input type="text" id="register-name" placeholder="Имя">
+        <input type="text" id="register-surname" placeholder="Фамилия">
+        <input type="text" id="register-last_name" placeholder="Отчество (необязательно)">
+        <input type="number" id="register-age" placeholder="Возраст">
+        <select id="register-sex">
+            <option value="MALE">Мужской</option>
+            <option value="FEMALE">Женский</option>
+        </select>
+        <input type="email" id="register-email" placeholder="Email">
+        <input type="password" id="register-password" placeholder="Пароль">
+        <select id="register-role">
+            <option value="teacher">Преподаватель</option>
+            <option value="student">Студент</option>
+        </select>
+        <input type="text" id="register-student_group" placeholder="Группа" style="display: none;">
+        <button onclick="registerUser()">Зарегистрироваться</button>
+        <p>Уже есть аккаунт? <a href="#" id="show-login-form">Войти</a></p>
+        <p id="register-error-message" style="color: red; display: none;">Ошибка регистрации</p>
     </div>
 </div>
 
-<script src="src/js/IndexApp.js"> </script>
+<script src="src/js/IndexApp.js"></script>
 
 </body>
 </html>
