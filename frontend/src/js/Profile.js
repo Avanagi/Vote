@@ -87,7 +87,7 @@ async function vote(userId, pollId, optionId, optionText) {
     };
 
     try {
-        /*const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
+        const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(transaction)
@@ -95,8 +95,7 @@ async function vote(userId, pollId, optionId, optionText) {
 
         if (!blockchainResponse.ok) {
             throw new Error("Ошибка добавления транзакции в блокчейн");
-        }*/
-
+        }
         const voteResponse = await fetch(`http://localhost:8080/polls/${pollId},${userId}/vote`, {
             method: "POST"
         });

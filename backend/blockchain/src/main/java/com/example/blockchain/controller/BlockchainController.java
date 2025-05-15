@@ -9,6 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/blockchain")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BlockchainController {
 
     private final BlockchainService blockchainService;

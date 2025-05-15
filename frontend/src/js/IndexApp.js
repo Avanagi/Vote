@@ -45,7 +45,7 @@ async function registerUser() {
     const userData = {
         name: name,
         surname: surname,
-        lastName: last_name || null,
+        lastName: last_name,
         age: parseInt(age),
         sex: sex,
         email: email,
@@ -77,12 +77,9 @@ async function registerUser() {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Ошибка регистрации');
+            throw new Error('Ошибка регистрации');
         }
 
-        const data = await response.json();
-        console.log('Успешная регистрация:', data);
         alert('Регистрация прошла успешно!');
         document.querySelector('.login-box').style.display = 'block';
         document.querySelector('.registration-box').style.display = 'none';
@@ -93,7 +90,6 @@ async function registerUser() {
     }
 }
 
-// Обработчики для переключения между формами
 document.getElementById('show-register-form').addEventListener('click', function(event) {
     event.preventDefault();
     document.querySelector('.login-box').style.display = 'none';
