@@ -5,16 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
-@Entity
-@Table(name = "blocks")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "blocks")
 public class BlockEntity {
 
     @Id
@@ -35,21 +36,10 @@ public class BlockEntity {
     @Column(length = 2048)
     private String signature;
 
-    private long timestamp;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "block", cascade = CascadeType.ALL)
     private List<TransactionEntity> transactions;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        BlockEntity block = (BlockEntity) o;
-        return index == block.index && timestamp == block.timestamp && Objects.equals(id, block.id) && Objects.equals(previousHash, block.previousHash) && Objects.equals(hash, block.hash) && Objects.equals(validator, block.validator) && Objects.equals(signature, block.signature) && Objects.equals(transactions, block.transactions);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, index, previousHash, hash, validator, signature, timestamp, transactions);
-    }
 }

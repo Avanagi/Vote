@@ -1,16 +1,13 @@
 package com.example.blockchain.scheduler;
 
 import com.example.blockchain.service.BlockchainService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class BlockchainScheduler {
-
-    private static final Logger logger = LoggerFactory.getLogger(BlockchainScheduler.class);
-
     private final BlockchainService blockchainService;
 
     public BlockchainScheduler(BlockchainService blockchainService) {
@@ -18,7 +15,24 @@ public class BlockchainScheduler {
     }
 
     @Scheduled(fixedRate = 60000)
-    public void proposeNewBlock() throws Exception {
+    public void mineBlock() {
         blockchainService.mineBlock();
+    }
+
+    @Scheduled(fixedRate = 15000)
+    public void validateBlockchain() {
+        boolean valid = blockchainService.isBlockchainValid();
+        blockchainService.setBlockchainHealthy(valid);
+
+        if(!valid) {
+            log.error("Целостность блокчейна нарушена! Система переведена в защищённый режим.");
+        } else {
+            log.debug("Проверка блокчейна завершена успешно.");
+        }
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void autoMineBlock() {
+        blockchainService.mineUnconfirmedTransactions();
     }
 }

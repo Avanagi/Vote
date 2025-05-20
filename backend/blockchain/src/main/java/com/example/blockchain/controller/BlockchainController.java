@@ -22,8 +22,8 @@ public class BlockchainController {
         try {
             blockchainService.addTransaction(tx);
             return ResponseEntity.ok("Транзакция успешно добавлена.");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Ошибка при добавлении транзакции: " + e.getMessage());
+        } catch (Exception exception) {
+            return ResponseEntity.status(500).body("Ошибка при добавлении транзакции: " + exception.getMessage());
         }
     }
 
@@ -32,8 +32,8 @@ public class BlockchainController {
         try {
             blockchainService.mineBlock();
             return ResponseEntity.ok("Блок успешно замайнен.");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Ошибка при майнинге блока: " + e.getMessage());
+        } catch (Exception exception) {
+            return ResponseEntity.status(500).body("Ошибка при майнинге блока: " + exception.getMessage());
         }
     }
 
@@ -51,8 +51,8 @@ public class BlockchainController {
             } else {
                 return ResponseEntity.status(400).body("Цепочка блоков невалидна.");
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Ошибка при проверке цепочки блоков: " + e.getMessage());
+        } catch (Exception exception) {
+            return ResponseEntity.status(500).body("Ошибка при проверке цепочки блоков: " + exception.getMessage());
         }
     }
 }

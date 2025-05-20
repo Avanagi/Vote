@@ -1,18 +1,15 @@
 package com.example.blockchain.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "transactions")
-public class TransactionEntity {
+@Table(name = "unconfirmed_transactions")
+public class UnconfirmedTransactionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +22,4 @@ public class TransactionEntity {
     private Long optionId;
 
     private long createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "block_id")
-    private BlockEntity block;
-
 }
