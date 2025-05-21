@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -16,6 +16,17 @@ spring:
   liquibase:
     change-log: classpath:liquibase/changelog-master.yml
     enabled: true
+  mail:
+    host: localhost # Адрес SMTP-сервера MailHog
+    port: 1025      # Порт SMTP-сервера MailHog
+    username: ""    # MailHog не требует аутентификации
+    password: ""    # MailHog не требует аутентификации
+    properties:
+      mail:
+        smtp:
+          auth: false # Отключаем аутентификацию
+          starttls:
+            enable: false # Отключаем STARTTLS, если MailHog не поддерживает его
 
 server:
   port: 8080

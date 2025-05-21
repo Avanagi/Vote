@@ -4,13 +4,15 @@ import com.example.vote.dto.OptionDto;
 import com.example.vote.dto.PollDto;
 import com.example.vote.entity.OptionEntity;
 import com.example.vote.entity.PollEntity;
+import com.example.vote.entity.StudentEntity;
 import com.example.vote.exception.poll.PollCreationException;
 import com.example.vote.exception.poll.PollDeletionException;
 import com.example.vote.exception.poll.PollNotFoundException;
-import com.example.vote.mapper.OptionMapper;
 import com.example.vote.mapper.PollMapper;
 import com.example.vote.repository.OptionRepository;
 import com.example.vote.repository.PollRepository;
+import com.example.vote.repository.StudentRepository;
+import com.example.vote.service.EmailService;
 import com.example.vote.service.PollService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,8 +32,10 @@ import java.util.stream.Collectors;
 public class PollServiceImpl implements PollService {
 
     private final PollRepository pollRepository;
+    private final StudentRepository studentRepository;
     private final OptionRepository optionRepository;
     private final PollMapper pollMapper;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -39,27 +44,75 @@ public class PollServiceImpl implements PollService {
         PollEntity pollEntity = new PollEntity();
         pollEntity.setQuestion(pollDTO.getQuestion());
         pollEntity.setOptions(new ArrayList<>());
+
+        // Сохраняем список групп как строку, или null
+        if (pollDTO.getVisibleFor() == null || pollDTO.getVisibleFor().isEmpty()) {
+            pollEntity.setVisibleFor(null);
+        } else {
+            String visibleForStr = String.join(",", pollDTO.getVisibleFor());
+            pollEntity.setVisibleFor(visibleForStr);
+        }
+
+        pollEntity.setCreatedAt(LocalDateTime.now());
+
         try {
-            log.info(pollEntity.toString());
             PollEntity savedPollEntity = pollRepository.save(pollEntity);
             log.info("Poll created successfully with ID: {}", savedPollEntity.getId());
 
+            // Сохраняем опции
             List<OptionEntity> optionEntities = new ArrayList<>();
             if (pollDTO.getOptions() != null && !pollDTO.getOptions().isEmpty()) {
                 for (OptionDto optionDTO : pollDTO.getOptions()) {
-                    log.info("Adding option: {}, {}", savedPollEntity.getId(), optionDTO.getOptionText());
                     OptionEntity optionEntity = new OptionEntity();
                     optionEntity.setOptionText(optionDTO.getOptionText());
                     optionEntity.setPoll(savedPollEntity);
                     optionEntities.add(optionEntity);
                 }
                 optionRepository.saveAll(optionEntities);
+                savedPollEntity.setOptions(optionEntities);
             }
 
+            // Отправка уведомлений
+            List<StudentEntity> targetStudents;
+            if (pollEntity.getVisibleFor() == null || pollEntity.getVisibleFor().isBlank()) {
+                log.info("Poll is public. Sending notifications to all students.");
+                targetStudents = studentRepository.findAll();
+            } else {
+                List<String> groups = Arrays.stream(pollEntity.getVisibleFor().split(","))
+                        .map(String::trim)
+                        .collect(Collectors.toList());
+                log.info("Poll is visible to groups: {}", groups);
+                targetStudents = studentRepository.findByStudentGroupIn(groups);
+            }
+
+            sendEmailsToStudents(targetStudents, savedPollEntity);
+
             return pollMapper.toDto(savedPollEntity);
+
         } catch (DataAccessException e) {
             log.error("Error during poll creation: {}", pollDTO.getQuestion(), e);
             throw new PollCreationException("Failed to create poll due to database error.", e);
+        }
+    }
+
+
+    private void sendEmailsToStudents(List<StudentEntity> students, PollEntity pollEntity) {
+        if (students == null || students.isEmpty()) {
+            log.info("No users to notify for poll ID: {}", pollEntity.getId());
+            return;
+        }
+
+        for (StudentEntity student : students) {
+            try {
+                emailService.sendEmail(
+                        student.getEmail(),
+                        "Доступен новый опрос: " + pollEntity.getQuestion(),
+                        "Пожалуйста, перейдите по ссылке, чтобы принять участие: http://localhost:8080/polls/" + pollEntity.getId()
+                );
+                log.info("Email notification sent to {} for poll ID: {}", student.getEmail(), pollEntity.getId());
+            } catch (Exception e) {
+                log.error("Failed to send email to {} for poll ID: {}", student.getEmail(), pollEntity.getId(), e);
+            }
         }
     }
 
@@ -100,10 +153,11 @@ public class PollServiceImpl implements PollService {
     }
 
     @Transactional
-    public List<PollDto> getAvailablePollsForUser(Long userId) {
+    public List<PollDto> getAvailablePollsForUserAndGroup(Long userId,  String group) {
         log.info("Getting available polls for user ID: {}", userId);
-        return pollRepository.findAvailablePollsForUser(userId).stream()
+        return pollRepository.findAvailablePollsForUserAndGroup(userId, group).stream()
                 .map(pollMapper::toDtoWithOption)
                 .collect(Collectors.toList());
     }
 }
+

@@ -18,6 +18,8 @@ public class PollDto {
     @NotNull(message = "Question is required")
     private String question;
 
+    private List<String> visibleFor;
+
     @NotNull(message = "Options are required")
     private List<OptionDto> options;
 

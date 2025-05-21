@@ -17,4 +17,6 @@ public interface BlockchainService {
     boolean isBlockchainValid();
 
     void setBlockchainHealthy(boolean valid);
+
+    Map<Long, Long> getStudentAnswers(Long studentId);
 }

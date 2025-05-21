@@ -10,4 +10,5 @@ public interface OptionService {
 
     List<OptionDto> getOptionsByPollId(Long pollId);
 
+    OptionDto getOptionById(Long optionId);
 }

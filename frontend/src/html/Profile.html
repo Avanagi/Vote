@@ -27,7 +27,11 @@
 <div class="student-content">
     <h2>Доступные опросы</h2>
     <p id="polls-count">Доступно <span id="student-polls-count">0</span> опросов</p>
-    <div id="polls-list">
+    <div id="polls-list"></div>
+
+    <h2>Ваши ответы на опросы</h2>
+    <div id="student-poll-answers">
+        <p>Загрузка ответов...</p>
     </div>
 </div>
 
@@ -40,6 +44,9 @@
 
         <label for="poll-options">Варианты ответов (каждый на новой строке):</label>
         <textarea id="poll-options" placeholder="Вариант 1&#10;Вариант 2&#10;..."></textarea>
+
+        <label for="poll-groups">Группы (через запятую):</label>
+        <input type="text" id="poll-groups" placeholder="group101, group102, group303" />
 
         <button onclick="createPoll()">Создать опрос</button>
         <p id="poll-creation-message" style="color: green; display: none;">Опрос успешно создан!</p>

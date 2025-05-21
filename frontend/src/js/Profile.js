@@ -22,17 +22,73 @@ async function loadUserData() {
         document.getElementById("studentGroup").textContent = user.studentGroup || "Неизвестно";
         document.querySelector(".student-content").style.display = "block";
         document.querySelector(".teacher-content").style.display = "none";
-        loadStudentPolls(user.id);
+        await loadStudentPolls(user.id, user.studentGroup);
+        await loadStudentAnswers(user.id);
     } else if (user.role === "teacher") {
         document.querySelector(".student-content").style.display = "none";
         document.querySelector(".teacher-content").style.display = "block";
-        loadPollResults();
+        await loadPollResults();
     }
 }
 
-async function loadStudentPolls(userId) {
+async function loadStudentAnswers(studentId) {
+    const answersContainer = document.getElementById("student-poll-answers");
+    answersContainer.innerHTML = "<p>Загрузка ответов...</p>";
+
     try {
-        const response = await fetch(`http://localhost:8080/polls/available?userId=${userId}`);
+        const response = await fetch(`http://localhost:8079/blockchain/studentAnswers?studentId=${studentId}`);
+        if (!response.ok) throw new Error("Ошибка загрузки ответов");
+
+        const answers = await response.json();
+        const entries = Object.entries(answers); // [ [pollId, optionId], ... ]
+
+        if (entries.length === 0) {
+            answersContainer.innerHTML = "<p>Вы ещё не участвовали в опросах.</p>";
+            return;
+        }
+
+        answersContainer.innerHTML = "";
+
+        for (const [pollId, optionId] of entries) {
+            try {
+                const pollResponse = await fetch(`http://localhost:8080/polls/${pollId}`);
+                if (!pollResponse.ok) throw new Error(`Не удалось загрузить опрос #${pollId}`);
+                const pollData = await pollResponse.json();
+
+                const optionResponse = await fetch(`http://localhost:8080/options/${optionId}`);
+                if (!optionResponse.ok) throw new Error(`Не удалось загрузить вариант #${optionId}`);
+                const optionData = await optionResponse.json();
+
+                const answerBlock = document.createElement("div");
+                answerBlock.classList.add("student-answer-item");
+
+                const questionEl = document.createElement("p");
+                questionEl.innerHTML = `<strong>Вопрос:</strong> ${pollData.question}`;
+
+                const optionEl = document.createElement("p");
+                optionEl.innerHTML = `<strong>Ваш ответ:</strong> ${optionData.optionText}`;
+
+                answerBlock.appendChild(questionEl);
+                answerBlock.appendChild(optionEl);
+
+                answersContainer.appendChild(answerBlock);
+            } catch (innerError) {
+                console.error(`Ошибка при загрузке данных по pollId=${pollId}, optionId=${optionId}:`, innerError);
+                const errorBlock = document.createElement("p");
+                errorBlock.textContent = `Не удалось загрузить результат по опросу #${pollId}`;
+                answersContainer.appendChild(errorBlock);
+            }
+        }
+    } catch (error) {
+        console.error("Ошибка загрузки всех ответов:", error);
+        answersContainer.innerHTML = "<p>Не удалось загрузить ответы.</p>";
+    }
+}
+
+
+async function loadStudentPolls(userId, studentGroup) {
+    try {
+        const response = await fetch(`http://localhost:8080/polls/available?userId=${userId}&group=${studentGroup}`);
         if (!response.ok) throw new Error("Ошибка загрузки опросов");
 
         const polls = await response.json();
@@ -84,10 +140,10 @@ async function vote(userId, pollId, optionId, optionText) {
         studentId: userId.toString(),
         pollId: pollId,
         optionId: optionId,
-        timestamp: new Date().getTime()
     };
 
     try {
+        console.log(JSON.stringify(transaction));
         const blockchainResponse = await fetch(`http://localhost:8079/blockchain/submitTransaction`, {
             method: "POST",
             headers: {
@@ -118,7 +174,10 @@ async function vote(userId, pollId, optionId, optionText) {
 
 async function createPoll() {
     const question = document.getElementById("poll-question").value;
-    const optionsText = document.getElementById("poll-options").value.split("\n").filter(option => option.trim() !== "");
+    const optionsText = document.getElementById("poll-options").value
+        .split("\n")
+        .filter(option => option.trim() !== "");
+    const groupsInput = document.getElementById("poll-groups").value.trim();
     const pollCreationMessage = document.getElementById("poll-creation-message");
     const pollCreationError = document.getElementById("poll-creation-error");
 
@@ -133,12 +192,18 @@ async function createPoll() {
         optionText: text
     }));
 
+    const visibleFor = groupsInput
+        ? groupsInput.split(",").map(g => g.trim()).filter(g => g !== "")
+        : null;
+
     const pollData = {
         question: question,
-        options: options
+        options: options,
+        visibleFor: visibleFor
     };
 
     try {
+        console.log(JSON.stringify(pollData));
         const pollResponse = await fetch("http://localhost:8080/polls", {
             method: "POST",
             headers: {
@@ -152,12 +217,11 @@ async function createPoll() {
             throw new Error(errorData.message || "Ошибка при создании опроса");
         }
 
-        const poll = await pollResponse.json();
-
         pollCreationMessage.style.display = "block";
         pollCreationMessage.textContent = "Опрос успешно создан!";
         document.getElementById("poll-question").value = "";
         document.getElementById("poll-options").value = "";
+        document.getElementById("poll-groups").value = "";
 
     } catch (error) {
         console.error("Ошибка создания опроса:", error);
@@ -165,6 +229,7 @@ async function createPoll() {
         pollCreationError.textContent = "Ошибка создания опроса: " + error.message;
     }
 }
+
 
 async function loadPollResults() {
     function optionBar(totalVotes, votes, optionResult, optionsResultsContainer) {
@@ -218,7 +283,7 @@ async function loadPollResults() {
 
                 for (const optionId in resultsData) {
                     const votes = resultsData[optionId];
-                    const optionText = optionsMap.get(parseInt(optionId)); // Get option text
+                    const optionText = optionsMap.get(parseInt(optionId));
                     if (optionText) {
                         const optionResult = document.createElement("div");
                         optionResult.classList.add("option-result");
@@ -226,7 +291,7 @@ async function loadPollResults() {
 
                         optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
                     } else {
-                        const optionResult = document.cёreateElement("div");
+                        const optionResult = document.createElement("div");
                         optionResult.classList.add("option-result");
                         optionResult.textContent = `Option ${optionId}: `;
 

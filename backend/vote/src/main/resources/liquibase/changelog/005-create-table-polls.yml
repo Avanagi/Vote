@@ -18,6 +18,15 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: visible_for
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: true
+              - column:
                   name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: NOW()
+              - column:
+                  name: updated_at
                   type: TIMESTAMP
                   defaultValueComputed: NOW()

@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
     List<TransactionEntity> findByPollId(Long pollId);
+
+    List<TransactionEntity> findByStudentId(Long studentId);
 }

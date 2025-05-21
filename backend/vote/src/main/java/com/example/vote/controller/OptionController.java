@@ -52,6 +52,20 @@ public class OptionController {
         }
     }
 
+    @GetMapping("/{optionId}")
+    public ResponseEntity<OptionDto> getOptionById(@PathVariable Long optionId) {
+        log.info("Getting option by ID: {}", optionId);
+        try {
+            OptionDto option = optionService.getOptionById(optionId);
+            return new ResponseEntity<>(option, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Unexpected error getting options for poll ID {}: {}", optionId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
         log.error("An unexpected error occurred in OptionController", ex);

@@ -85,11 +85,13 @@ public class PollController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<PollDto>> getAvailablePolls(@RequestParam Long userId) {
-        log.info("Get available polls for user id: {}", userId);
-        List<PollDto> availablePolls = pollService.getAvailablePollsForUser(userId);
+    public ResponseEntity<List<PollDto>> getAvailablePolls(@RequestParam Long userId,
+                                                           @RequestParam(required = false) String group) {
+        log.info("Get available polls for user id: {}, group: {}", userId, group);
+        List<PollDto> availablePolls = pollService.getAvailablePollsForUserAndGroup(userId, group);
         return new ResponseEntity<>(availablePolls, HttpStatus.OK);
     }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {

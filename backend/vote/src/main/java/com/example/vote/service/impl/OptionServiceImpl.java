@@ -9,6 +9,7 @@ import com.example.vote.mapper.OptionMapper;
 import com.example.vote.repository.OptionRepository;
 import com.example.vote.repository.PollRepository;
 import com.example.vote.service.OptionService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -55,4 +56,13 @@ public class OptionServiceImpl implements OptionService {
                 .map(optionMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public OptionDto getOptionById(Long optionId) {
+        log.info("Getting option by ID: {}", optionId);
+        OptionEntity optionEntity = optionRepository.findById(optionId)
+                .orElseThrow(() -> new EntityNotFoundException("Option not found with ID: " + optionId));
+        return optionMapper.toDto(optionEntity);
+    }
+
 }

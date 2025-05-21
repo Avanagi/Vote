@@ -3,6 +3,7 @@ package com.example.vote.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,9 +24,16 @@ public class PollEntity {
     @Column(nullable = false)
     private String question;
 
+    @Column(nullable = true)
+    private String visibleFor;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false, updatable = true)
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OptionEntity> options;

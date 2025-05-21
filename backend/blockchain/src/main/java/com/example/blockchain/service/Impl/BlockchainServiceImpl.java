@@ -19,9 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,7 +36,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     private final UnconfirmedTransactionRepository unconfirmedTransactionRepository;
     private final TransactionsMapper transactionsMapper;
 
-    private final List<TransactionEntity> transactionPool = new ArrayList<>();
+    private final Set<TransactionEntity> transactionPool = new HashSet<>();
     private volatile boolean isBlockchainHealthy = true;
 
     public BlockchainServiceImpl(BlockRepository blockRepo,
@@ -168,6 +166,19 @@ public class BlockchainServiceImpl implements BlockchainService {
         return transactionRepository.findByPollId(pollId).stream()
                 .collect(Collectors.groupingBy(TransactionEntity::getOptionId, Collectors.counting()));
     }
+
+    @Override
+    @Transactional
+    public Map<Long, Long> getStudentAnswers(Long studentId) {
+        log.info("Получение ответов студента с ID: #{}", studentId);
+        return transactionRepository.findByStudentId(studentId).stream()
+                .collect(Collectors.toMap(
+                        TransactionEntity::getPollId,
+                        TransactionEntity::getOptionId,
+                        (existing, duplicate) -> existing
+                ));
+    }
+
 
     @Transactional
     public boolean isBlockchainValid() {

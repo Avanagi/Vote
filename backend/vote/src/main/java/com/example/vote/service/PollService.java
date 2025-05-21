@@ -14,6 +14,6 @@ public interface PollService {
 
     void deletePoll(Long id);
 
-    List<PollDto> getAvailablePollsForUser(Long userId);
+    List<PollDto> getAvailablePollsForUserAndGroup(Long userId,  String group);
 
 }

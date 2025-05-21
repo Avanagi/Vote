@@ -10,9 +10,20 @@ import java.util.List;
 public interface PollRepository extends JpaRepository<PollEntity, Long> {
 
     @Query("SELECT p FROM PollEntity p " +
-            "WHERE NOT EXISTS" +
-            " (SELECT up FROM StudentPollEntity up " +
-            "WHERE up.poll.id = p.id AND up.student.id = :userId)")
-    List<PollEntity> findAvailablePollsForUser(@Param("userId") Long userId);
+            "WHERE (p.visibleFor IS NULL OR " +
+            "   p.visibleFor = :groupName OR " +
+            "   p.visibleFor LIKE CONCAT(:groupName, ',%') OR " +
+            "   p.visibleFor LIKE CONCAT('%,', :groupName, ',%') OR " +
+            "   p.visibleFor LIKE CONCAT('%,', :groupName)) " +
+            "AND NOT EXISTS (" +
+            "   SELECT up FROM StudentPollEntity up " +
+            "   WHERE up.poll.id = p.id AND up.student.id = :userId)")
+    List<PollEntity> findAvailablePollsForUserAndGroup(@Param("userId") Long userId,
+                                                       @Param("groupName") String groupName);
 
+
+
+
+    @Query(value = "SELECT s.email FROM StudentEntity s")
+    List<String> findStudentEmailsEligibleForPoll(@Param("pollId") Long pollId);
 }

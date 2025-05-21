@@ -42,6 +42,11 @@ public class BlockchainController {
         return blockchainService.getResults(pollId);
     }
 
+    @GetMapping("/studentAnswers")
+    public Map<Long, Long> getStudentAnswers(@RequestParam Long studentId) {
+        return blockchainService.getStudentAnswers(studentId);
+    }
+
     @GetMapping("/validateBlockchain")
     public ResponseEntity<String> validateBlockchain() {
         try {

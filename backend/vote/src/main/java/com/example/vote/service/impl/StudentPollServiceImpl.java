@@ -23,7 +23,7 @@ import java.util.List;
 @Service
 public class StudentPollServiceImpl implements StudentPollService {
 
-    private final StudentPollRepository userPollRepository;
+    private final StudentPollRepository studentPollRepository;
     private final PollRepository pollRepository;
     private final StudentRepository studentRepository;
 
@@ -41,17 +41,11 @@ public class StudentPollServiceImpl implements StudentPollService {
         userPoll.setPoll(poll);
 
         try {
-            userPollRepository.save(userPoll);
+            studentPollRepository.save(userPoll);
             log.info("Poll {} marked as voted by user {} successfully.", pollId, userId);
         } catch (DataAccessException e) {
             log.error("Error marking poll {} as voted by user {}: {}", pollId, userId, e.getMessage());
             throw new VotingFailedException("Failed to record vote due to database error.", e);
         }
-    }
-
-    @Transactional(readOnly = true)
-    public List<PollEntity> getAvailablePolls(Long userId) {
-        log.info("Getting available polls for user {}", userId);
-        return pollRepository.findAvailablePollsForUser(userId);
     }
 }
