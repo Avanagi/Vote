@@ -52,6 +52,7 @@ public class PollServiceImpl implements PollService {
             String visibleForStr = String.join(",", pollDTO.getVisibleFor());
             pollEntity.setVisibleFor(visibleForStr);
         }
+        pollEntity.setTeacherId(pollDTO.getTeacherId());
 
         pollEntity.setCreatedAt(LocalDateTime.now());
 

@@ -20,6 +20,8 @@ public class PollDto {
 
     private List<String> visibleFor;
 
+    private Long teacherId;
+
     @NotNull(message = "Options are required")
     private List<OptionDto> options;
 

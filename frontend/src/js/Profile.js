@@ -196,14 +196,17 @@ async function createPoll() {
         ? groupsInput.split(",").map(g => g.trim()).filter(g => g !== "")
         : null;
 
+
+    const user = JSON.parse(localStorage.getItem("user"))
+
     const pollData = {
         question: question,
         options: options,
-        visibleFor: visibleFor
+        visibleFor: visibleFor,
+        teacherId: user.id
     };
 
     try {
-        console.log(JSON.stringify(pollData));
         const pollResponse = await fetch("http://localhost:8080/polls", {
             method: "POST",
             headers: {
@@ -232,6 +235,12 @@ async function createPoll() {
 
 
 async function loadPollResults() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.id) {
+        console.error("Пользователь не авторизован");
+        return;
+    }
+
     function optionBar(totalVotes, votes, optionResult, optionsResultsContainer) {
         const percentage = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(2) : 0;
         const percentageBar = document.createElement("div");
@@ -247,15 +256,18 @@ async function loadPollResults() {
         const pollsResponse = await fetch("http://localhost:8080/polls");
         if (!pollsResponse.ok) throw new Error("Failed to fetch polls");
         const polls = await pollsResponse.json();
+
         const pollsResultsContainer = document.getElementById("polls-results");
         pollsResultsContainer.innerHTML = "";
 
-        if (polls.length === 0) {
-            pollsResultsContainer.innerHTML = "<p>Нет доступных опросов для отображения результатов.</p>";
+        const teacherPolls = polls.filter(poll => poll.teacherId === user.id);
+
+        if (teacherPolls.length === 0) {
+            pollsResultsContainer.innerHTML = "<p>У вас нет созданных опросов для отображения результатов.</p>";
             return;
         }
 
-        for (const poll of polls) {
+        for (const poll of teacherPolls) {
             const pollResultItem = document.createElement("div");
             pollResultItem.classList.add("poll-item");
             pollResultItem.textContent = poll.question;
@@ -274,6 +286,7 @@ async function loadPollResults() {
                 const optionsResponse = await fetch(`http://localhost:8080/polls/${poll.id}`);
                 if (!optionsResponse.ok) throw new Error(`Failed to fetch options for poll ${poll.id}`);
                 const pollData = await optionsResponse.json();
+
                 const optionsMap = new Map();
                 if (pollData.options) {
                     pollData.options.forEach(option => {
@@ -284,23 +297,14 @@ async function loadPollResults() {
                 for (const optionId in resultsData) {
                     const votes = resultsData[optionId];
                     const optionText = optionsMap.get(parseInt(optionId));
-                    if (optionText) {
-                        const optionResult = document.createElement("div");
-                        optionResult.classList.add("option-result");
-                        optionResult.textContent = `${optionText}: `;
+                    const optionResult = document.createElement("div");
+                    optionResult.classList.add("option-result");
+                    optionResult.textContent = `${optionText || `Option ${optionId}`}: `;
 
-                        optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
-                    } else {
-                        const optionResult = document.createElement("div");
-                        optionResult.classList.add("option-result");
-                        optionResult.textContent = `Option ${optionId}: `;
-
-                        optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
-                    }
-
+                    optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
                 }
             } else {
-                optionsResultsContainer.innerHTML = "<p>No votes have been cast for this poll yet.</p>";
+                optionsResultsContainer.innerHTML = "<p>Пока нет голосов по этому опросу.</p>";
             }
 
             pollResultItem.appendChild(optionsResultsContainer);
@@ -308,13 +312,15 @@ async function loadPollResults() {
                 optionsResultsContainer.style.display =
                     optionsResultsContainer.style.display === "none" ? "block" : "none";
             });
+
             pollsResultsContainer.appendChild(pollResultItem);
         }
     } catch (error) {
-        console.error("Error loading poll results:", error);
-        document.getElementById("polls-results").innerHTML = "<p>Failed to load poll results.</p>";
+        console.error("Ошибка при загрузке результатов опросов:", error);
+        document.getElementById("polls-results").innerHTML = "<p>Ошибка загрузки результатов.</p>";
     }
 }
+
 
 function logout() {
     localStorage.removeItem("user");

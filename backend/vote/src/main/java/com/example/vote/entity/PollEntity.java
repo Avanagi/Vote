@@ -27,6 +27,9 @@ public class PollEntity {
     @Column(nullable = true)
     private String visibleFor;
 
+    @Column(nullable = false)
+    private Long teacherId;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

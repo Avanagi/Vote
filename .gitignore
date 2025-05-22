@@ -60,3 +60,8 @@ backend/vote/target/generated-sources/annotations/com/example/vote/mapper/Studen
 backend/vote/target/generated-sources/annotations/com/example/vote/mapper/StudentResponseMapperImpl.java
 backend/vote/target/generated-sources/annotations/com/example/vote/mapper/TeacherRegistrationMapperImpl.java
 backend/vote/target/generated-sources/annotations/com/example/vote/mapper/TeacherResponseMapperImpl.java
+.idea/.gitignore
+.idea/dataSources.xml
+.idea/Diplom.iml
+.idea/modules.xml
+.idea/vcs.xml

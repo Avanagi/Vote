@@ -22,7 +22,8 @@ public interface PollMapper {
     @Mappings({
             @Mapping(target = "options", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
-            @Mapping(target = "visibleFor", source = "visibleFor", qualifiedByName = "listToString")
+            @Mapping(target = "visibleFor", source = "visibleFor", qualifiedByName = "listToString"),
+            @Mapping(target = "teacherId", source = "teacherId")
     })
     PollEntity toEntity(PollDto dto);
 
