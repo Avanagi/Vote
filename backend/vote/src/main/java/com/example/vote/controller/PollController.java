@@ -6,14 +6,12 @@ import com.example.vote.exception.poll.PollDeletionException;
 import com.example.vote.exception.poll.PollNotFoundException;
 import com.example.vote.service.PollService;
 import com.example.vote.service.StudentPollService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/polls")
 public class PollController {
@@ -27,83 +25,80 @@ public class PollController {
     }
 
     @PostMapping
-    public ResponseEntity<PollDto> createPoll(@RequestBody PollDto pollDTO) {
-        log.info("Creating poll: {}", pollDTO);
+    public ResponseEntity<?> createPoll(@RequestBody PollDto pollDTO) {
         try {
-            PollDto createdPoll = pollService.createPoll(pollDTO);
-            return new ResponseEntity<>(createdPoll, HttpStatus.CREATED);
+            pollService.createPoll(pollDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Успешно создано");
         } catch (PollCreationException e) {
-            log.error("Error creating poll: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при создании опроса: " + e.getMessage());
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PollDto> getPollById(@PathVariable Long id) {
-        log.info("Get poll by id: {}", id);
+    public ResponseEntity<?> getPollById(@PathVariable Long id) {
         try {
-            PollDto pollDTO = pollService.getPollById(id);
-            return new ResponseEntity<>(pollDTO, HttpStatus.OK);
+            PollDto poll = pollService.getPollById(id);
+            return ResponseEntity.ok(poll);
         } catch (PollNotFoundException e) {
-            log.error("Poll not found with id {}: {}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Опрос не найден.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при получении опроса: " + e.getMessage());
         }
     }
 
     @GetMapping
     public ResponseEntity<List<PollDto>> getAllPolls() {
-        log.info("Get all polls");
-        List<PollDto> polls = pollService.getAllPolls();
-        return new ResponseEntity<>(polls, HttpStatus.OK);
+        return ResponseEntity.ok(pollService.getAllPolls());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePoll(@PathVariable Long id) {
-        log.info("Delete poll by id: {}", id);
+    public ResponseEntity<String> deletePoll(@PathVariable Long id) {
         try {
             pollService.deletePoll(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.ok("Опрос успешно удалён.");
         } catch (PollNotFoundException e) {
-            log.error("Poll not found for deletion with id {}: {}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Опрос не найден.");
         } catch (PollDeletionException e) {
-            log.error("Error deleting poll with id {}: {}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при удалении опроса: " + e.getMessage());
         }
     }
 
     @PostMapping("/{pollId},{userId}/vote")
     public ResponseEntity<String> vote(@PathVariable Long pollId, @PathVariable Long userId) {
-        log.info("Vote for poll {} by user {}", pollId, userId);
         try {
             userPollService.markPollAsVoted(userId, pollId);
-            return new ResponseEntity<>("Ваш голос учтён. Опрос скрыт для вас.", HttpStatus.OK);
-        } catch (Exception e) { // Обработайте более специфичные исключения, если они есть в StudentPollService
-            log.error("Error during vote for poll {} by user {}: {}", pollId, userId, e.getMessage());
-            return new ResponseEntity<>("Произошла ошибка при голосовании.", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.ok("Ваш голос учтён. Опрос скрыт для вас.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Произошла ошибка при голосовании: " + e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PollDto> updatePoll(@PathVariable Long id, @RequestBody PollDto pollDto) {
-        log.info("Received request to update poll with ID: {}", id);
-        PollDto updatedPoll = pollService.updatePoll(id, pollDto);
-        return ResponseEntity.ok(updatedPoll);
+    public ResponseEntity<?> updatePoll(@PathVariable Long id, @RequestBody PollDto pollDto) {
+        try {
+            PollDto updatedPoll = pollService.updatePoll(id, pollDto);
+            return ResponseEntity.ok(updatedPoll);
+        } catch (PollNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Опрос не найден.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при обновлении опроса: " + e.getMessage());
+        }
     }
-
 
     @GetMapping("/available")
-    public ResponseEntity<List<PollDto>> getAvailablePolls(@RequestParam Long userId,
-                                                           @RequestParam(required = false) String group) {
-        log.info("Get available polls for user id: {}, group: {}", userId, group);
-        List<PollDto> availablePolls = pollService.getAvailablePollsForUserAndGroup(userId, group);
-        return new ResponseEntity<>(availablePolls, HttpStatus.OK);
-    }
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred in PollController", ex);
-        return new ResponseEntity<>("Произошла непредвиденная ошибка.", HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<?> getAvailablePolls(@RequestParam Long userId,
+                                               @RequestParam(required = false) String group) {
+        try {
+            List<PollDto> availablePolls = pollService.getAvailablePollsForUserAndGroup(userId, group);
+            return ResponseEntity.ok(availablePolls);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при получении доступных опросов: " + e.getMessage());
+        }
     }
 }

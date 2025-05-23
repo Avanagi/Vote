@@ -1,9 +1,7 @@
-/* Заголовки */
 h2, h3 {
     color: #ffffff;
 }
 
-/* Основной контейнер */
 .teacher-content {
     max-width: 1000px;
     margin: 30px auto;
@@ -13,7 +11,6 @@ h2, h3 {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
 }
 
-/* Формы и контейнеры */
 .poll-creation-form,
 .poll-edit-container,
 .poll-results-container {
@@ -24,7 +21,6 @@ h2, h3 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
-/* Метки */
 label {
     display: block;
     margin-bottom: 8px;
@@ -32,7 +28,6 @@ label {
     color: #bbbbbb;
 }
 
-/* Текстовые поля и textarea */
 textarea,
 input[type="text"] {
     width: 100%;
@@ -55,7 +50,6 @@ input[type="text"]:focus {
     outline: none;
 }
 
-/* Сообщения об успехе и ошибке */
 #poll-creation-message,
 #edit-poll-message {
     color: #4cd964;
@@ -68,7 +62,6 @@ input[type="text"]:focus {
     font-weight: bold;
 }
 
-/* Элементы списка опросов */
 .poll-item {
     background-color: #2d2d2d;
     padding: 15px;
@@ -83,7 +76,6 @@ input[type="text"]:focus {
     background-color: #393939;
 }
 
-/* Результаты опроса */
 .poll-options-results {
     margin-top: 15px;
     padding-left: 20px;
@@ -106,7 +98,6 @@ input[type="text"]:focus {
     transition: width 0.5s ease;
 }
 
-/* Модальное окно */
 #edit-modal {
     display: none;
     position: fixed;
@@ -150,7 +141,6 @@ input[type="text"]:focus {
     box-sizing: border-box;
 }
 
-/* Кнопки (общие стили для всех) */
 button {
     color: #aaa;
     border: none;
@@ -170,7 +160,6 @@ button:disabled {
     cursor: default;
 }
 
-/* Кнопки с анимацией заливки (submit и close) */
 button.submit-btn,
 button.close-btn {
     position: relative;
@@ -198,7 +187,6 @@ button.close-btn:hover::after {
     left: 0;
 }
 
-/* Контейнер пагинации (для опросов и результатов) */
 .pagination-controls,
 .poll-results-pagination-controls {
     display: flex;
@@ -207,8 +195,6 @@ button.close-btn:hover::after {
     margin-top: 15px;
 }
 
-/* Кнопки пагинации */
 .pagination-controls button,
 .poll-results-pagination-controls button {
-    /* наследует стили кнопок из button выше */
 }

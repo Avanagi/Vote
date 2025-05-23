@@ -10,6 +10,5 @@ public interface OptionRepository extends JpaRepository<OptionEntity, Long> {
 
     List<OptionEntity> findByPollId(Long pollId);
 
-
     Optional<OptionEntity> findById(Long optionId);
 }

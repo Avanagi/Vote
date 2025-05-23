@@ -1,6 +1,6 @@
 package com.example.vote.service;
 
-public interface SHA256HashingService {
+public interface HashingService {
 
     String generateSHA256Hash(String text);
 

@@ -13,7 +13,7 @@ public interface TeacherService {
 
     TeacherResponseDto getTeacherByEmailAndPassword(String email, String password);
 
-    TeacherRegistrationDto saveTeacher(TeacherRegistrationDto teacherRegistrationDto);
+    void saveTeacher(TeacherRegistrationDto teacherRegistrationDto);
 
     void deleteTeacherById(Long id);
 

@@ -30,8 +30,9 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     @Transactional
-    public OptionDto createOption(Long pollId, OptionDto optionDTO) {
-        log.debug("Creating option for poll with ID {}: {}", pollId, optionDTO.getOptionText());
+    public void createOption(Long pollId, OptionDto optionDTO) {
+        log.debug("Создание варианта ответа для опроса с ID {}: {}", pollId, optionDTO.getOptionText());
+
         PollEntity poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new PollNotFoundForOptionException(pollId));
 
@@ -40,29 +41,29 @@ public class OptionServiceImpl implements OptionService {
 
         try {
             OptionEntity savedOptionEntity = optionRepository.save(optionEntity);
-            log.debug("Option created successfully with ID: {} for poll ID: {}", savedOptionEntity.getId(), pollId);
-            return optionMapper.toDto(savedOptionEntity);
+            log.debug("Вариант ответа успешно создан с ID: {} для опроса ID: {}", savedOptionEntity.getId(), pollId);
+            optionMapper.toDto(savedOptionEntity);
         } catch (DataAccessException e) {
-            log.error("Error creating option for poll with ID {}: {}", pollId, e.getMessage());
-            throw new OptionCreationException("Failed to create option due to database error.", e);
+            log.error("Ошибка при создании варианта ответа для опроса с ID {}: {}", pollId, e.getMessage());
+            throw new OptionCreationException("Не удалось создать вариант ответа из-за ошибки базы данных.", e);
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<OptionDto> getOptionsByPollId(Long pollId) {
-        log.debug("Getting options for poll with ID: {}", pollId);
+        log.debug("Получение вариантов ответа для опроса с ID: {}", pollId);
         return optionRepository.findByPollId(pollId).stream()
                 .map(optionMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionDto getOptionById(Long optionId) {
-        log.debug("Getting option by ID: {}", optionId);
+        log.debug("Получение варианта ответа по ID: {}", optionId);
         OptionEntity optionEntity = optionRepository.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found with ID: " + optionId));
+                .orElseThrow(() -> new EntityNotFoundException("Вариант ответа не найден по ID: " + optionId));
         return optionMapper.toDto(optionEntity);
     }
-
 }

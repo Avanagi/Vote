@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         info.classList.toggle('visible');
     });
 
-    // Скрытие при клике вне блока
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.user-container')) {
             info.classList.remove('visible');

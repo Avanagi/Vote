@@ -13,7 +13,7 @@ public interface StudentService {
 
     StudentResponseDto getStudentByEmailAndPassword(String email, String password);
 
-    StudentRegistrationDto saveStudent(StudentRegistrationDto studentRegistrationDto);
+    void saveStudent(StudentRegistrationDto studentRegistrationDto);
 
     void deleteStudentById(Long id);
 

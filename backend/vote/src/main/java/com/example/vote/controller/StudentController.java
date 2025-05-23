@@ -4,7 +4,6 @@ import com.example.vote.dto.StudentRegistrationDto;
 import com.example.vote.dto.StudentResponseDto;
 import com.example.vote.exception.human.*;
 import com.example.vote.service.StudentService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/students")
-@CrossOrigin(origins = "http://localhost:5173")
 public class StudentController {
 
     private final StudentService studentService;
@@ -25,89 +22,69 @@ public class StudentController {
     }
 
     @GetMapping
-    public List<StudentResponseDto> getAllStudents() {
-        log.info("Get all students");
-        return studentService.getAllStudents();
+    public ResponseEntity<List<StudentResponseDto>> getAllStudents() {
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudentResponseDto> getStudentById(@PathVariable Long id) {
-        log.info("Get student by id: {}", id);
+    public ResponseEntity<?> getStudentById(@PathVariable Long id) {
         try {
             StudentResponseDto student = studentService.getStudentById(id);
-            return new ResponseEntity<>(student, HttpStatus.OK);
+            return ResponseEntity.ok(student);
         } catch (HumanNotFoundException ex) {
-            log.error("Student not found: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Студент не найден.");
         }
     }
 
     @PostMapping("/loadStudent")
-    public ResponseEntity<StudentResponseDto> getStudent(@RequestBody Map<String, String> credentials) {
-        log.info("Get student by credentials");
+    public ResponseEntity<?> getStudent(@RequestBody Map<String, String> credentials) {
         try {
             StudentResponseDto student = studentService
                     .getStudentByEmailAndPassword(credentials.get("email"), credentials.get("password"));
-            if (student != null) {
-                return new ResponseEntity<>(student, HttpStatus.OK);
-            } else {
-                throw new InvalidCredentialsException();
-            }
+
+            return ResponseEntity.ok(student);
         } catch (HumanNotFoundException | InvalidCredentialsException ex) {
-            log.error("Authentication failed: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Неверные учетные данные.");
         }
     }
 
     @PostMapping
-    public ResponseEntity<StudentRegistrationDto> saveStudent(@RequestBody StudentRegistrationDto studentRegistrationDto) {
-        log.info("Received request: {}", studentRegistrationDto);
+    public ResponseEntity<?> saveStudent(@RequestBody StudentRegistrationDto dto) {
         try {
-            StudentRegistrationDto savedStudent = studentService.saveStudent(studentRegistrationDto);
-            return new ResponseEntity<>(savedStudent, HttpStatus.CREATED);
+            studentService.saveStudent(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Студент сохранен");
         } catch (HumanEmailAlreadyExistsException ex) {
-            log.error("Email already exists: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Пользователь с таким email уже существует.");
         } catch (HumanSaveFailedException ex) {
-            log.error("Failed to save student: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при сохранении студента: " + ex.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStudentById(@PathVariable Long id) {
-        log.info("Delete student by id: {}", id);
+    public ResponseEntity<String> deleteStudentById(@PathVariable Long id) {
         try {
             studentService.deleteStudentById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.ok("Студент успешно удалён.");
         } catch (HumanNotFoundException ex) {
-            log.error("Student not found for deletion: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Студент не найден.");
         } catch (HumanDeleteFailedException ex) {
-            log.error("Failed to delete student: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при удалении студента: " + ex.getMessage());
         }
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<Void> updateStudentById(@PathVariable Long id, @RequestBody StudentResponseDto studentDTO) {
-        log.info("Update student by id: {}. Parameters: {}", id, studentDTO);
+    public ResponseEntity<String> updateStudentById(@PathVariable Long id,
+                                                    @RequestBody StudentResponseDto dto) {
         try {
-            studentService.updateStudentById(id, studentDTO);
-            return new ResponseEntity<>(HttpStatus.OK);
+            studentService.updateStudentById(id, dto);
+            return ResponseEntity.ok("Данные студента успешно обновлены.");
         } catch (HumanNotFoundException ex) {
-            log.error("Student not found for update: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Студент не найден.");
         } catch (HumanUpdateFailedException ex) {
-            log.error("Failed to update student: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при обновлении студента: " + ex.getMessage());
         }
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred", ex);
-        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }
-

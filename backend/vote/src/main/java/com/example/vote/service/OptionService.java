@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface OptionService {
 
-    OptionDto createOption(Long pollId, OptionDto optionDto);
+    void createOption(Long pollId, OptionDto optionDto);
 
     List<OptionDto> getOptionsByPollId(Long pollId);
 

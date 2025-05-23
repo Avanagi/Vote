@@ -53,6 +53,7 @@ async function createPoll() {
         document.getElementById("poll-groups").value = "";
 
         loadTeacherPollsWithEdit();
+        loadPollResults();
 
     } catch (error) {
         console.error("Ошибка создания опроса:", error);
@@ -157,6 +158,7 @@ async function createPollDiv(poll) {
                     if (response.ok) {
                         pollDiv.remove();
                         loadTeacherPollsWithEdit();
+                        loadPollResults();
                     } else {
                         alert("Ошибка при удалении опроса");
                     }

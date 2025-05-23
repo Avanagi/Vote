@@ -16,8 +16,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @AllArgsConstructor
 @Slf4j
 @Service
@@ -27,25 +25,34 @@ public class StudentPollServiceImpl implements StudentPollService {
     private final PollRepository pollRepository;
     private final StudentRepository studentRepository;
 
+    @Override
     @Transactional
     public void markPollAsVoted(Long userId, Long pollId) {
-        log.info("Marking poll {} as voted by user {}", pollId, userId);
-        StudentEntity student = studentRepository.findById(userId)
-                .orElseThrow(() -> new StudentNotFoundForVoteException(userId));
+        log.debug("Отметка участия пользователя {} в опросе {}", userId, pollId);
 
-        PollEntity poll = pollRepository.findById(pollId)
-                .orElseThrow(() -> new PollNotFoundForVoteException(pollId));
+        StudentEntity student = getStudentById(userId);
+        PollEntity poll = getPollById(pollId);
 
-        StudentPollEntity userPoll = new StudentPollEntity();
-        userPoll.setStudent(student);
-        userPoll.setPoll(poll);
+        StudentPollEntity studentPoll = new StudentPollEntity();
+        studentPoll.setStudent(student);
+        studentPoll.setPoll(poll);
 
         try {
-            studentPollRepository.save(userPoll);
-            log.info("Poll {} marked as voted by user {} successfully.", pollId, userId);
+            studentPollRepository.save(studentPoll);
+            log.debug("Пользователь {} успешно проголосовал в опросе {}", userId, pollId);
         } catch (DataAccessException e) {
-            log.error("Error marking poll {} as voted by user {}: {}", pollId, userId, e.getMessage());
-            throw new VotingFailedException("Failed to record vote due to database error.", e);
+            log.error("Ошибка при сохранении голоса пользователя {} в опросе {}: {}", userId, pollId, e.getMessage());
+            throw new VotingFailedException("Не удалось сохранить голос из-за ошибки базы данных.", e);
         }
+    }
+
+    private StudentEntity getStudentById(Long userId) {
+        return studentRepository.findById(userId)
+                .orElseThrow(() -> new StudentNotFoundForVoteException(userId));
+    }
+
+    private PollEntity getPollById(Long pollId) {
+        return pollRepository.findById(pollId)
+                .orElseThrow(() -> new PollNotFoundForVoteException(pollId));
     }
 }

@@ -21,9 +21,4 @@ public interface PollRepository extends JpaRepository<PollEntity, Long> {
     List<PollEntity> findAvailablePollsForUserAndGroup(@Param("userId") Long userId,
                                                        @Param("groupName") String groupName);
 
-
-
-
-    @Query(value = "SELECT s.email FROM StudentEntity s")
-    List<String> findStudentEmailsEligibleForPoll(@Param("pollId") Long pollId);
 }

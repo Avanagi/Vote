@@ -12,7 +12,6 @@ body {
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #e0e0e0;
-
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -27,7 +26,6 @@ body::before {
     z-index: -1;
 }
 
-
 .main-content {
     display: flex;
     flex-direction: column;
@@ -36,9 +34,17 @@ body::before {
     width: 100%;
 }
 
-/* ============================== */
-/*         Блок пользователя     */
-/* ============================== */
+h2, h3 {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+p {
+    color: #a0a0ff;
+    margin: 6px 0;
+}
 
 .user-container {
     position: fixed;
@@ -81,7 +87,6 @@ body::before {
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-
 .user-container:hover .user-info {
     opacity: 1;
     transform: translateY(0);
@@ -100,17 +105,6 @@ button.logout-btn {
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
-
-/* ============================== */
-/*         Остальные стили       */
-/* ============================== */
-
-h2, h3 {
-    color: #333;
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 20px;
-}
 button {
     width: 100%;
     padding: 12px;
@@ -126,14 +120,41 @@ button {
     transition: background-color 0.4s ease, transform 0.2s ease;
 }
 
-p {
-    color: #4c51bf;
-    margin: 6px 0;
+button:hover:not(:disabled) {
+    background-color: #472f7a;
 }
 
-/* ============================== */
-/*         Медиа-запросы         */
-/* ============================== */
+button:disabled {
+    background-color: #333;
+    color: #666;
+    cursor: default;
+}
+
+
+button.submit-btn,
+button.close-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 10px 20px;
+}
+
+button.submit-btn::after,
+button.close-btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: #555;
+    z-index: -1;
+    transition: left 1s ease;
+}
+
+button.submit-btn:hover::after,
+button.close-btn:hover::after {
+    left: 0;
+}
 
 @media (max-width: 768px) {
     .user-info {

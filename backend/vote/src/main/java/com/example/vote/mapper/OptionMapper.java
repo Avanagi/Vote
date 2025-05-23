@@ -11,7 +11,7 @@ import java.util.List;
 public interface OptionMapper extends BaseMapper<OptionEntity, OptionDto> {
 
     @Mapping(target = "pollId", source = "poll.id")
-    @Mapping(target = "Id", source = "id")
+    @Mapping(target = "id", source = "id")
     OptionDto toDto(OptionEntity entity);
 
     OptionEntity toEntity(OptionDto dto);

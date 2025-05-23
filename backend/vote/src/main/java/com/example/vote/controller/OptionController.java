@@ -4,14 +4,12 @@ import com.example.vote.dto.OptionDto;
 import com.example.vote.exception.option.OptionCreationException;
 import com.example.vote.exception.option.PollNotFoundForOptionException;
 import com.example.vote.service.OptionService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/options")
 public class OptionController {
@@ -23,52 +21,36 @@ public class OptionController {
     }
 
     @PostMapping("/{pollId}")
-    public ResponseEntity<OptionDto> createOption(@PathVariable Long pollId, @RequestBody OptionDto optionDTO) {
-        log.info("Creating option for poll ID {}: {}", pollId, optionDTO);
+    public ResponseEntity<String> createOption(@PathVariable Long pollId, @RequestBody OptionDto optionDto) {
         try {
-            OptionDto createdOption = optionService.createOption(pollId, optionDTO);
-            return new ResponseEntity<>(createdOption, HttpStatus.CREATED);
+            optionService.createOption(pollId, optionDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Опция успешно создана.");
         } catch (PollNotFoundForOptionException e) {
-            log.error("Poll not found for creating option (poll ID {}): {}", pollId, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Опрос не найден.");
         } catch (OptionCreationException e) {
-            log.error("Error creating option for poll ID {}: {}", pollId, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при создании опции: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected error creating option for poll ID {}: {}", pollId, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Неожиданная ошибка: " + e.getMessage());
         }
     }
 
     @GetMapping("/poll/{pollId}")
-    public ResponseEntity<List<OptionDto>> getOptionsByPollId(@PathVariable Long pollId) {
-        log.info("Getting options for poll ID: {}", pollId);
+    public ResponseEntity<?> getOptionsByPollId(@PathVariable Long pollId) {
         try {
             List<OptionDto> options = optionService.getOptionsByPollId(pollId);
-            return new ResponseEntity<>(options, HttpStatus.OK);
+            return ResponseEntity.ok(options);
         } catch (Exception e) {
-            log.error("Unexpected error getting options for poll ID {}: {}", pollId, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при получении опций: " + e.getMessage());
         }
     }
 
     @GetMapping("/{optionId}")
-    public ResponseEntity<OptionDto> getOptionById(@PathVariable Long optionId) {
-        log.info("Getting option by ID: {}", optionId);
+    public ResponseEntity<?> getOptionById(@PathVariable Long optionId) {
         try {
             OptionDto option = optionService.getOptionById(optionId);
-            return new ResponseEntity<>(option, HttpStatus.OK);
+            return ResponseEntity.ok(option);
         } catch (Exception e) {
-            log.error("Unexpected error getting options for poll ID {}: {}", optionId, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при получении опции: " + e.getMessage());
         }
-    }
-
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred in OptionController", ex);
-        return new ResponseEntity<>("Произошла непредвиденная ошибка.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface PollService {
 
-    PollDto createPoll(PollDto pollDto);
+    void createPoll(PollDto pollDto);
 
     PollDto getPollById(Long id);
 

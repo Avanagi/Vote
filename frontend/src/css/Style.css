@@ -4,7 +4,7 @@ html, body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #d6d6d6; /* чуть светлее светло-серого */
+    color: #d6d6d6;
     background: transparent;
     display: flex;
     justify-content: center;
@@ -22,7 +22,7 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-color: #1c1c1c; /* чёрный фон */
+    background-color: #1c1c1c;
     z-index: -1;
 }
 
@@ -39,7 +39,7 @@ body::before {
     text-align: center;
     width: 100%;
     animation: fadeIn 0.5s ease-in-out;
-    color: #e1e1e1; /* чуть светлее текста для формы */
+    color: #e1e1e1;
 }
 
 @keyframes fadeIn {
@@ -48,7 +48,7 @@ body::before {
 }
 
 h2 {
-    color: #f0f0f0; /* почти белый */
+    color: #f0f0f0;
     font-size: 22px;
     font-weight: bold;
 }
@@ -58,51 +58,51 @@ input, button {
     padding: 10px;
     margin: 10px 0;
     border-radius: 8px;
-    border: 1px solid #555; /* светло-тёмная рамка */
+    border: 1px solid #555;
     background-color: #3a3a3a;
-    color: #dcdcdc; /* светло-серый текст */
+    color: #dcdcdc;
     font-weight: bold;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 input::placeholder {
-    color: #999999; /* более мягкий серый */
+    color: #999999;
 }
 
 input:focus {
     outline: none;
-    border-color: #7f66d6; /* чуть светлее фиолетового */
+    border-color: #7f66d6;
     background-color: #4a4a4a;
 }
 
 button {
     cursor: pointer;
-    background-color: #7f66d6; /* более светлый фиолетовый */
-    color: #fafafa; /* почти белый */
+    background-color: #7f66d6;
+    color: #fafafa;
     border: none;
 }
 
 button:hover {
-    background-color: #5a4bb0; /* более тёмный фиолетовый */
+    background-color: #5a4bb0;
 }
 
 p {
-    color: #bbbbbb; /* мягкий светло-серый */
+    color: #bbbbbb;
     cursor: pointer;
 }
 
 p {
-    color: #bbbbbb; /* мягкий светло-серый */
+    color: #bbbbbb;
 }
 
 p a {
-    color: #7f66d6; /* светлый фиолетовый */
+    color: #7f66d6;
     text-decoration: none;
     font-weight: bold;
     transition: color 0.3s ease;
 }
 
 p a:hover {
-    color: #5a4bb0; /* темный фиолетовый при наведении */
+    color: #5a4bb0;
     text-decoration: underline;
 }

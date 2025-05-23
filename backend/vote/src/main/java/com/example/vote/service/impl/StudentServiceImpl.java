@@ -7,7 +7,7 @@ import com.example.vote.exception.human.*;
 import com.example.vote.mapper.StudentRegistrationMapper;
 import com.example.vote.mapper.StudentResponseMapper;
 import com.example.vote.repository.StudentRepository;
-import com.example.vote.service.SHA256HashingService;
+import com.example.vote.service.HashingService;
 import com.example.vote.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,19 +25,19 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final StudentResponseMapper studentResponseMapper;
     private final StudentRegistrationMapper studentRegisterMapper;
-    private final SHA256HashingService sha256HashingService;
+    private final HashingService hashingService;
 
     @Override
     @Transactional(readOnly = true)
     public List<StudentResponseDto> getAllStudents() {
-        log.info("Getting all students");
+        log.debug("Получение списка всех студентов");
         return studentResponseMapper.toDtoList(studentRepository.findAll());
     }
 
     @Override
     @Transactional(readOnly = true)
     public StudentResponseDto getStudentById(Long id) {
-        log.info("Getting student by id: {}", id);
+        log.debug("Получение студента по ID: {}", id);
         return studentResponseMapper.toDto(studentRepository
                 .findById(id)
                 .orElseThrow(() -> new HumanNotFoundException(id)));
@@ -46,54 +46,58 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional(readOnly = true)
     public StudentResponseDto getStudentByEmailAndPassword(String email, String password) {
-        log.info("Getting student by email and password: {}", email);
+        log.debug("Аутентификация студента по email: {}", email);
         StudentEntity studentEntity = studentRepository.findByEmail(email);
         if (studentEntity != null) {
-            if (sha256HashingService.validateSHA256Hash(password, studentEntity.getPassword())) {
+            if (hashingService.validateSHA256Hash(password, studentEntity.getPassword())) {
                 return studentResponseMapper.toDto(studentEntity);
             } else {
+                log.warn("Неверный пароль для email: {}", email);
                 throw new InvalidCredentialsException();
             }
         } else {
-            throw new HumanNotFoundException("Student with email " + email + " not found.");
+            log.warn("Студент с email {} не найден", email);
+            throw new HumanNotFoundException("Студент с email " + email + " не найден.");
         }
     }
 
     @Override
     @Transactional
-    public StudentRegistrationDto saveStudent(StudentRegistrationDto studentRegistrationDto) {
-        log.info("Saving student: {}", studentRegistrationDto.getEmail());
+    public void saveStudent(StudentRegistrationDto studentRegistrationDto) {
+        log.debug("Сохранение нового студента с email: {}", studentRegistrationDto.getEmail());
         try {
             if (studentRepository.existsByEmail(studentRegistrationDto.getEmail())) {
+                log.warn("Студент с email {} уже существует", studentRegistrationDto.getEmail());
                 throw new HumanEmailAlreadyExistsException(studentRegistrationDto.getEmail());
             }
-            String passwordHash = sha256HashingService.generateSHA256Hash(studentRegistrationDto.getPassword());
+            String passwordHash = hashingService.generateSHA256Hash(studentRegistrationDto.getPassword());
             StudentEntity studentEntity = studentRegisterMapper.toEntity(studentRegistrationDto);
             studentEntity.setPassword(passwordHash);
             StudentEntity savedStudent = studentRepository.save(studentEntity);
-            log.info("Student save successful: {}", savedStudent.getId());
-            return studentRegisterMapper.toDto(savedStudent);
+            log.info("Студент успешно сохранён с ID: {}", savedStudent.getId());
+            studentRegisterMapper.toDto(savedStudent);
         } catch (DataIntegrityViolationException e) {
-            log.error("Error saving student due to data integrity violation: {}", studentRegistrationDto.getEmail(), e);
-            throw new HumanSaveFailedException("Could not save student due to data integrity constraints.", e);
+            log.error("Ошибка при сохранении студента из-за нарушения целостности данных: {}", studentRegistrationDto.getEmail(), e);
+            throw new HumanSaveFailedException("Не удалось сохранить студента из-за нарушения целостности данных.", e);
         } catch (Exception e) {
-            log.error("Unexpected error during student save: {}", studentRegistrationDto.getEmail(), e);
-            throw new HumanSaveFailedException("Failed to save student.", e);
+            log.error("Неожиданная ошибка при сохранении студента: {}", studentRegistrationDto.getEmail(), e);
+            throw new HumanSaveFailedException("Не удалось сохранить студента.", e);
         }
     }
 
     @Override
     @Transactional
     public void deleteStudentById(Long id) {
-        log.info("Deleting student by id: {}", id);
+        log.info("Удаление студента по ID: {}", id);
         try {
             if (!studentRepository.existsById(id)) {
+                log.warn("Студент с ID {} не найден для удаления", id);
                 throw new HumanNotFoundException(id);
             }
             studentRepository.deleteStudentEntityById(id);
-            log.info("Student with id {} deleted successfully.", id);
+            log.info("Студент с ID {} успешно удалён", id);
         } catch (Exception e) {
-            log.error("Error deleting student with id {}: {}", id, e.getMessage());
+            log.error("Ошибка при удалении студента с ID {}: {}", id, e.getMessage());
             throw new HumanDeleteFailedException(id.toString(), e);
         }
     }
@@ -101,15 +105,15 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     public void updateStudentById(Long id, StudentResponseDto studentDTO) {
-        log.info("Updating student by id: {}", id);
+        log.info("Обновление данных студента по ID: {}", id);
         StudentEntity existingStudent = studentRepository.findById(id)
                 .orElseThrow(() -> new HumanNotFoundException(id));
         try {
             studentResponseMapper.updateFromDto(studentDTO, existingStudent);
             studentRepository.save(existingStudent);
-            log.info("Student with id {} updated successfully.", id);
+            log.info("Студент с ID {} успешно обновлён", id);
         } catch (Exception e) {
-            log.error("Error updating student with id {}: {}", id, e.getMessage());
+            log.error("Ошибка при обновлении студента с ID {}: {}", id, e.getMessage());
             throw new HumanUpdateFailedException(id.toString(), e);
         }
     }

@@ -3,9 +3,7 @@ package com.example.vote.controller;
 import com.example.vote.dto.TeacherRegistrationDto;
 import com.example.vote.dto.TeacherResponseDto;
 import com.example.vote.exception.human.*;
-import com.example.vote.service.StudentService;
 import com.example.vote.service.TeacherService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/teachers")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TeacherController {
 
     private final TeacherService teacherService;
@@ -26,89 +22,68 @@ public class TeacherController {
     }
 
     @GetMapping
-    public List<TeacherResponseDto> getAllTeachers() {
-        log.info("Get all teachers");
-        return teacherService.getAllTeachers();
+    public ResponseEntity<List<TeacherResponseDto>> getAllTeachers() {
+        return ResponseEntity.ok(teacherService.getAllTeachers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TeacherResponseDto> getTeacherById(@PathVariable Long id) {
-        log.info("Get teacher by id: {}", id);
+    public ResponseEntity<?> getTeacherById(@PathVariable Long id) {
         try {
-            TeacherResponseDto teacherResponseDto = teacherService.getTeacherById(id);
-            return new ResponseEntity<>(teacherResponseDto, HttpStatus.OK);
+            TeacherResponseDto teacher = teacherService.getTeacherById(id);
+            return ResponseEntity.ok(teacher);
         } catch (HumanNotFoundException ex) {
-            log.error("Teacher not found: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Преподаватель не найден.");
         }
     }
 
     @PostMapping("/loadTeacher")
-    public ResponseEntity<TeacherResponseDto> getTeacher(@RequestBody Map<String, String> credentials) {
-        log.info("Get teacher by credentials");
+    public ResponseEntity<?> getTeacher(@RequestBody Map<String, String> credentials) {
         try {
-            TeacherResponseDto teacherResponseDto = teacherService
+            TeacherResponseDto teacher = teacherService
                     .getTeacherByEmailAndPassword(credentials.get("email"), credentials.get("password"));
-            if (teacherResponseDto != null) {
-                return new ResponseEntity<>(teacherResponseDto, HttpStatus.OK);
-            } else {
-                throw new InvalidCredentialsException();
-            }
+            return ResponseEntity.ok(teacher);
         } catch (HumanNotFoundException | InvalidCredentialsException ex) {
-            log.error("Authentication failed: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Неверные учетные данные.");
         }
     }
 
     @PostMapping
-    public ResponseEntity<TeacherRegistrationDto> saveTeacher(@RequestBody TeacherRegistrationDto teacherRegistrationDto) {
-        log.info("Received request: {}", teacherRegistrationDto);
+    public ResponseEntity<?> saveTeacher(@RequestBody TeacherRegistrationDto dto) {
         try {
-            TeacherRegistrationDto savedTeacher = teacherService.saveTeacher(teacherRegistrationDto);
-            return new ResponseEntity<>(savedTeacher, HttpStatus.CREATED);
+            teacherService.saveTeacher(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Преподаватель успешно сохранен.");
         } catch (HumanEmailAlreadyExistsException ex) {
-            log.error("Email already exists: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Пользователь с таким email уже существует.");
         } catch (HumanSaveFailedException ex) {
-            log.error("Failed to save teacher: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при сохранении преподавателя: " + ex.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTeacherById(@PathVariable Long id) {
-        log.info("Delete teacher by id: {}", id);
+    public ResponseEntity<String> deleteTeacherById(@PathVariable Long id) {
         try {
             teacherService.deleteTeacherById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.ok("Преподаватель успешно удалён.");
         } catch (HumanNotFoundException ex) {
-            log.error("Teacher not found for deletion: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Преподаватель не найден.");
         } catch (HumanDeleteFailedException ex) {
-            log.error("Failed to delete teacher: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при удалении преподавателя: " + ex.getMessage());
         }
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<Void> updateTeacherById(@PathVariable Long id, @RequestBody TeacherResponseDto teacherResponseDto) {
-        log.info("Update teacher by id: {}. Parameters: {}", id, teacherResponseDto);
+    public ResponseEntity<String> updateTeacherById(@PathVariable Long id,
+                                                    @RequestBody TeacherResponseDto dto) {
         try {
-            teacherService.updateTeacherById(id, teacherResponseDto);
-            return new ResponseEntity<>(HttpStatus.OK);
+            teacherService.updateTeacherById(id, dto);
+            return ResponseEntity.ok("Данные преподавателя успешно обновлены.");
         } catch (HumanNotFoundException ex) {
-            log.error("Teacher not found for update: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Преподаватель не найден.");
         } catch (HumanUpdateFailedException ex) {
-            log.error("Failed to update teacher: {}", ex.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при обновлении преподавателя: " + ex.getMessage());
         }
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred", ex);
-        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
 }
