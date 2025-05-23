@@ -5,63 +5,104 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Профиль</title>
-    <link href="../css/Style.css" rel="stylesheet">
     <link href="../css/Profile.css" rel="stylesheet">
+    <link href="../css/ProfileStudent.css" rel="stylesheet">
+    <link href="../css/ProfileTeacher.css" rel="stylesheet">
 </head>
 
 <body>
 
-<div class="user-info">
-    <h3>Пользователь</h3>
-    <p><strong>Имя:</strong> <span id="name">Загрузка...</span></p>
-    <p><strong>Фамилия:</strong> <span id="surname">Загрузка...</span></p>
-    <p><strong>Отчество:</strong> <span id="lastName">Загрузка...</span></p>
-    <p><strong>Пол:</strong> <span id="sex">Загрузка...</span></p>
-    <p><strong>Возраст:</strong> <span id="age">Загрузка...</span></p>
-    <p><strong>Email:</strong> <span id="email">Загрузка...</span></p>
-    <p><strong>Роль:</strong> <span id="role">Загрузка...</span></p>
-    <p id="student-group-info" style="display: none;"><strong>Группа:</strong> <span id="studentGroup">Загрузка...</span></p>
-    <button onclick="logout()">Выйти</button>
-</div>
+<div class="user-container">
+    <div class="user-icon">👤</div>
 
-<div class="student-content">
-    <h2>Доступные опросы</h2>
-    <p id="polls-count">Доступно <span id="student-polls-count">0</span> опросов</p>
-    <div id="polls-list"></div>
-
-    <h2>Ваши ответы на опросы</h2>
-    <div id="student-poll-answers">
-        <p>Загрузка ответов...</p>
+    <div class="user-info">
+        <h3>Пользователь</h3>
+        <p><strong>Имя:</strong> <span id="name">Загрузка...</span></p>
+        <p><strong>Фамилия:</strong> <span id="surname">Загрузка...</span></p>
+        <p><strong>Отчество:</strong> <span id="lastName">Загрузка...</span></p>
+        <p><strong>Пол:</strong> <span id="sex">Загрузка...</span></p>
+        <p><strong>Возраст:</strong> <span id="age">Загрузка...</span></p>
+        <p><strong>Email:</strong> <span id="email">Загрузка...</span></p>
+        <p><strong>Роль:</strong> <span id="role">Загрузка...</span></p>
+        <p id="student-group-info" style="display: none;"><strong>Группа:</strong> <span id="studentGroup">Загрузка...</span></p>
+        <button onclick="logout()">Выйти</button>
     </div>
 </div>
 
-<div class="teacher-content" style="display: none;">
-    <h2>Информация преподавателя</h2>
-    <div class="poll-creation-form">
-        <h3>Создать опрос</h3>
-        <label for="poll-question">Вопрос:</label>
-        <textarea id="poll-question" placeholder="Введите текст вопроса"></textarea>
+<div class="main-content">
 
-        <label for="poll-options">Варианты ответов (каждый на новой строке):</label>
-        <textarea id="poll-options" placeholder="Вариант 1&#10;Вариант 2&#10;..."></textarea>
+    <div class="student-content">
+        <h2>Меню опросов</h2>
+        <p id="polls-count">Доступ(-ен, -ны) <span id="student-polls-count">0</span> опрос(-а, -ов)</p>
+        <div id="polls-list"></div>
 
-        <label for="poll-groups">Группы (через запятую):</label>
-        <input type="text" id="poll-groups" placeholder="group101, group102, group303" />
-
-        <button onclick="createPoll()">Создать опрос</button>
-        <p id="poll-creation-message" style="color: green; display: none;">Опрос успешно создан!</p>
-        <p id="poll-creation-error" style="color: red; display: none;">Ошибка создания опроса.</p>
-    </div>
-
-    <div class="poll-results-container">
-        <h3>Результаты опросов</h3>
-        <div id="polls-results">
-            <p>Загрузка результатов опросов...</p>
+        <h2>Ответы на опросы</h2>
+        <div id="student-poll-answers">
+            <p>Загрузка ответов...</p>
         </div>
+
+    </div>
+
+    <div class="teacher-content" style="display: none;">
+        <h2>Информация преподавателя</h2>
+        <div class="poll-creation-form">
+            <h3>Создать опрос</h3>
+            <label for="poll-question">Вопрос:</label>
+            <textarea id="poll-question" placeholder="Введите текст вопроса"></textarea>
+
+            <label for="poll-options">Варианты ответов (каждый на новой строке):</label>
+            <textarea id="poll-options" placeholder="Вариант 1&#10;Вариант 2&#10;..."></textarea>
+
+            <label for="poll-groups">Группы (через запятую):</label>
+            <input type="text" id="poll-groups" placeholder="group101, group102, group303" />
+
+            <button onclick="createPoll()">Создать опрос</button>
+            <p id="poll-creation-message" style="color: green; display: none;">Опрос успешно создан!</p>
+            <p id="poll-creation-error" style="color: red; display: none;">Ошибка создания опроса.</p>
+        </div>
+
+        <div class="poll-edit-container">
+            <h3>Ваши опросы</h3>
+            <div id="teacher-polls-list">
+                <p>Загрузка ваших опросов...</p>
+            </div>
+        </div>
+
+        <div id="edit-modal" class="flex">
+            <div class="modal-content">
+                <h2>Редактирование опроса</h2>
+
+                <label>Вопрос</label>
+                <input type="text" id="edit-poll-question" />
+
+                <label>Варианты ответа (по одному в строке)</label>
+                <textarea id="edit-poll-options" rows="5"></textarea>
+
+                <label>Группы (через запятую)</label>
+                <input type="text" id="edit-poll-groups" />
+
+                <div id="edit-poll-message" style="display:none; color:green; margin-top:10px;"></div>
+                <div id="edit-poll-error" style="display:none; color:red; margin-top:10px;"></div>
+
+                <button class="submit-btn" onclick="submitPollEdit()">Сохранить</button>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+        </div>
+
+
+        <div class="poll-results-container">
+            <h3>Результаты</h3>
+            <div id="polls-results">
+                <p>Загрузка результатов опросов...</p>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script src="../js/Profile.js" defer></script>
+<script src="../js/ProfileStudent.js" defer></script>
+<script src="../js/ProfileTeacher.js" defer></script>
 
 </body>
 </html>

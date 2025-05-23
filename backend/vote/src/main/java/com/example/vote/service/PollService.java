@@ -12,6 +12,8 @@ public interface PollService {
 
     List<PollDto> getAllPolls();
 
+    PollDto updatePoll(Long pollId, PollDto pollDTO);
+
     void deletePoll(Long id);
 
     List<PollDto> getAvailablePollsForUserAndGroup(Long userId,  String group);

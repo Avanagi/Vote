@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,7 +95,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         List<TransactionEntity> transactions;
         synchronized (transactionPool) {
             if (transactionPool.isEmpty()) {
-                log.warn("Пул транзакций пуст. Майнинг невозможен.");
+                log.debug("Пул транзакций пуст. Майнинг невозможен. Время: {}", LocalDateTime.now());
                 return;
             }
             transactions = new ArrayList<>(transactionPool);
@@ -214,7 +215,7 @@ public class BlockchainServiceImpl implements BlockchainService {
             }
         }
 
-        log.info("Блокчейн прошел проверку на целостность.");
+        log.debug("Блокчейн прошел проверку на целостность. Время: {}", LocalDateTime.now());
         return true;
     }
 

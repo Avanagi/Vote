@@ -31,7 +31,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     @Transactional
     public OptionDto createOption(Long pollId, OptionDto optionDTO) {
-        log.info("Creating option for poll with ID {}: {}", pollId, optionDTO.getOptionText());
+        log.debug("Creating option for poll with ID {}: {}", pollId, optionDTO.getOptionText());
         PollEntity poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new PollNotFoundForOptionException(pollId));
 
@@ -40,7 +40,7 @@ public class OptionServiceImpl implements OptionService {
 
         try {
             OptionEntity savedOptionEntity = optionRepository.save(optionEntity);
-            log.info("Option created successfully with ID: {} for poll ID: {}", savedOptionEntity.getId(), pollId);
+            log.debug("Option created successfully with ID: {} for poll ID: {}", savedOptionEntity.getId(), pollId);
             return optionMapper.toDto(savedOptionEntity);
         } catch (DataAccessException e) {
             log.error("Error creating option for poll with ID {}: {}", pollId, e.getMessage());
@@ -51,7 +51,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     @Transactional(readOnly = true)
     public List<OptionDto> getOptionsByPollId(Long pollId) {
-        log.info("Getting options for poll with ID: {}", pollId);
+        log.debug("Getting options for poll with ID: {}", pollId);
         return optionRepository.findByPollId(pollId).stream()
                 .map(optionMapper::toDto)
                 .collect(Collectors.toList());
@@ -59,7 +59,7 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public OptionDto getOptionById(Long optionId) {
-        log.info("Getting option by ID: {}", optionId);
+        log.debug("Getting option by ID: {}", optionId);
         OptionEntity optionEntity = optionRepository.findById(optionId)
                 .orElseThrow(() -> new EntityNotFoundException("Option not found with ID: " + optionId));
         return optionMapper.toDto(optionEntity);

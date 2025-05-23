@@ -84,6 +84,14 @@ public class PollController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PollDto> updatePoll(@PathVariable Long id, @RequestBody PollDto pollDto) {
+        log.info("Received request to update poll with ID: {}", id);
+        PollDto updatedPoll = pollService.updatePoll(id, pollDto);
+        return ResponseEntity.ok(updatedPoll);
+    }
+
+
     @GetMapping("/available")
     public ResponseEntity<List<PollDto>> getAvailablePolls(@RequestParam Long userId,
                                                            @RequestParam(required = false) String group) {

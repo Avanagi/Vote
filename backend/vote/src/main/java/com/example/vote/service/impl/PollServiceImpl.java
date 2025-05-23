@@ -21,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -40,12 +38,11 @@ public class PollServiceImpl implements PollService {
     @Override
     @Transactional
     public PollDto createPoll(PollDto pollDTO) {
-        log.info("Creating poll: {}", pollDTO.getQuestion());
+        log.debug("Creating poll: {}", pollDTO.getQuestion());
         PollEntity pollEntity = new PollEntity();
         pollEntity.setQuestion(pollDTO.getQuestion());
         pollEntity.setOptions(new ArrayList<>());
 
-        // Сохраняем список групп как строку, или null
         if (pollDTO.getVisibleFor() == null || pollDTO.getVisibleFor().isEmpty()) {
             pollEntity.setVisibleFor(null);
         } else {
@@ -58,9 +55,8 @@ public class PollServiceImpl implements PollService {
 
         try {
             PollEntity savedPollEntity = pollRepository.save(pollEntity);
-            log.info("Poll created successfully with ID: {}", savedPollEntity.getId());
+            log.debug("Poll created successfully with ID: {}", savedPollEntity.getId());
 
-            // Сохраняем опции
             List<OptionEntity> optionEntities = new ArrayList<>();
             if (pollDTO.getOptions() != null && !pollDTO.getOptions().isEmpty()) {
                 for (OptionDto optionDTO : pollDTO.getOptions()) {
@@ -73,16 +69,15 @@ public class PollServiceImpl implements PollService {
                 savedPollEntity.setOptions(optionEntities);
             }
 
-            // Отправка уведомлений
             List<StudentEntity> targetStudents;
             if (pollEntity.getVisibleFor() == null || pollEntity.getVisibleFor().isBlank()) {
-                log.info("Poll is public. Sending notifications to all students.");
+                log.debug("Poll is public. Sending notifications to all students.");
                 targetStudents = studentRepository.findAll();
             } else {
                 List<String> groups = Arrays.stream(pollEntity.getVisibleFor().split(","))
                         .map(String::trim)
                         .collect(Collectors.toList());
-                log.info("Poll is visible to groups: {}", groups);
+                log.debug("Poll is visible to groups: {}", groups);
                 targetStudents = studentRepository.findByStudentGroupIn(groups);
             }
 
@@ -99,7 +94,7 @@ public class PollServiceImpl implements PollService {
 
     private void sendEmailsToStudents(List<StudentEntity> students, PollEntity pollEntity) {
         if (students == null || students.isEmpty()) {
-            log.info("No users to notify for poll ID: {}", pollEntity.getId());
+            log.debug("No users to notify for poll ID: {}", pollEntity.getId());
             return;
         }
 
@@ -110,19 +105,65 @@ public class PollServiceImpl implements PollService {
                         "Доступен новый опрос: " + pollEntity.getQuestion(),
                         "Пожалуйста, перейдите по ссылке, чтобы принять участие: http://localhost:8080/polls/" + pollEntity.getId()
                 );
-                log.info("Email notification sent to {} for poll ID: {}", student.getEmail(), pollEntity.getId());
+                log.debug("Email notification sent to {} for poll ID: {}", student.getEmail(), pollEntity.getId());
             } catch (Exception e) {
                 log.error("Failed to send email to {} for poll ID: {}", student.getEmail(), pollEntity.getId(), e);
             }
         }
     }
 
+    @Override
+    @Transactional
+    public PollDto updatePoll(Long pollId, PollDto pollDTO) {
+        PollEntity existingPoll = pollRepository.findById(pollId)
+                .orElseThrow(() -> new PollNotFoundException("Опрос с id " + pollId + " не найден"));
+
+        existingPoll.setQuestion(pollDTO.getQuestion());
+
+        String oldVisibleFor = existingPoll.getVisibleFor();
+
+        String newVisibleFor;
+        if (pollDTO.getVisibleFor() == null || pollDTO.getVisibleFor().isEmpty()) {
+            newVisibleFor = null;
+            existingPoll.setVisibleFor(null);
+        } else {
+            newVisibleFor = String.join(",", pollDTO.getVisibleFor());
+            existingPoll.setVisibleFor(newVisibleFor);
+        }
+
+        existingPoll.getOptions().clear();
+        if (pollDTO.getOptions() != null && !pollDTO.getOptions().isEmpty()) {
+            for (OptionDto optionDTO : pollDTO.getOptions()) {
+                OptionEntity optionEntity = new OptionEntity();
+                optionEntity.setOptionText(optionDTO.getOptionText());
+                optionEntity.setPoll(existingPoll);
+                existingPoll.getOptions().add(optionEntity);
+            }
+        }
+
+        PollEntity updatedPoll = pollRepository.save(existingPoll);
+
+        if (!Objects.equals(oldVisibleFor, newVisibleFor)) {
+            List<StudentEntity> targetStudents;
+            if (newVisibleFor == null || newVisibleFor.isBlank()) {
+                targetStudents = studentRepository.findAll();
+            } else {
+                List<String> groups = Arrays.stream(newVisibleFor.split(","))
+                        .map(String::trim)
+                        .collect(Collectors.toList());
+                targetStudents = studentRepository.findByStudentGroupIn(groups);
+            }
+            sendEmailsToStudents(targetStudents, updatedPoll);
+        }
+
+        return pollMapper.toDto(updatedPoll);
+    }
 
 
     @Override
     @Transactional(readOnly = true)
     public PollDto getPollById(Long id) {
-        log.info("Getting poll by ID: {}", id);
+        log.debug("Getting poll by ID: {}", id);
         PollEntity pollEntity = pollRepository.findById(id)
                 .orElseThrow(() -> new PollNotFoundException(id));
         return pollMapper.toDtoWithOption(pollEntity);
@@ -131,7 +172,7 @@ public class PollServiceImpl implements PollService {
     @Override
     @Transactional(readOnly = true)
     public List<PollDto> getAllPolls() {
-        log.info("Getting all polls");
+        log.debug("Getting all polls");
         return pollRepository.findAll().stream()
                 .map(pollMapper::toDtoWithOption)
                 .collect(Collectors.toList());
@@ -140,13 +181,13 @@ public class PollServiceImpl implements PollService {
     @Override
     @Transactional
     public void deletePoll(Long id) {
-        log.info("Deleting poll with ID: {}", id);
+        log.debug("Deleting poll with ID: {}", id);
         try {
             if (!pollRepository.existsById(id)) {
                 throw new PollNotFoundException(id);
             }
             pollRepository.deleteById(id);
-            log.info("Poll with ID {} deleted successfully.", id);
+            log.debug("Poll with ID {} deleted successfully.", id);
         } catch (DataAccessException e) {
             log.error("Error during poll deletion with ID {}: {}", id, e.getMessage());
             throw new PollDeletionException(id.toString(), e);
@@ -155,7 +196,7 @@ public class PollServiceImpl implements PollService {
 
     @Transactional
     public List<PollDto> getAvailablePollsForUserAndGroup(Long userId,  String group) {
-        log.info("Getting available polls for user ID: {}", userId);
+        log.debug("Getting available polls for user ID: {}", userId);
         return pollRepository.findAvailablePollsForUserAndGroup(userId, group).stream()
                 .map(pollMapper::toDtoWithOption)
                 .collect(Collectors.toList());
