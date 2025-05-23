@@ -1,3 +1,9 @@
+let pollItems = [];
+let currentIndex = 0;
+const itemsPerPage = 3;
+let renderPage;
+let teacherPollsContainer = null;
+
 async function createPoll() {
     const question = document.getElementById("poll-question").value;
     const optionsText = document.getElementById("poll-options").value
@@ -14,16 +20,12 @@ async function createPoll() {
     }
     pollCreationError.style.display = "none";
 
-    const options = optionsText.map(text => ({
-        optionText: text
-    }));
-
+    const options = optionsText.map(text => ({ optionText: text }));
     const visibleFor = groupsInput
         ? groupsInput.split(",").map(g => g.trim()).filter(g => g !== "")
         : null;
 
-
-    const user = JSON.parse(localStorage.getItem("user"))
+    const user = JSON.parse(localStorage.getItem("user"));
 
     const pollData = {
         question: question,
@@ -35,9 +37,7 @@ async function createPoll() {
     try {
         const pollResponse = await fetch("http://localhost:8080/polls", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(pollData),
         });
 
@@ -52,6 +52,8 @@ async function createPoll() {
         document.getElementById("poll-options").value = "";
         document.getElementById("poll-groups").value = "";
 
+        loadTeacherPollsWithEdit();
+
     } catch (error) {
         console.error("Ошибка создания опроса:", error);
         pollCreationError.style.display = "block";
@@ -59,6 +61,121 @@ async function createPoll() {
     }
 }
 
+
+async function loadTeacherPollsWithEdit() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    teacherPollsContainer = document.getElementById("teacher-polls-list");
+    teacherPollsContainer.innerHTML = "<p>Загрузка ваших опросов...</p>";
+
+    const oldControls = document.querySelector(".pagination-controls");
+    if (oldControls) oldControls.remove();
+
+    try {
+        const response = await fetch("http://localhost:8080/polls");
+        const polls = await response.json();
+        const myPolls = polls.filter(p => p.teacherId === user.id);
+        pollItems = [];
+
+        for (const poll of myPolls) {
+            const pollDiv = await createPollDiv(poll);
+            pollItems.push(pollDiv);
+        }
+
+        const controls = document.createElement("div");
+        controls.className = "pagination-controls";
+
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "Назад";
+
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Вперёд";
+
+        renderPage = () => {
+            teacherPollsContainer.innerHTML = "";
+            pollItems.forEach((el, i) => {
+                el.style.display = (i >= currentIndex && i < currentIndex + itemsPerPage) ? "block" : "none";
+                teacherPollsContainer.appendChild(el);
+            });
+
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex + itemsPerPage >= pollItems.length;
+        };
+
+        prevBtn.onclick = () => {
+            if (currentIndex > 0) {
+                currentIndex -= itemsPerPage;
+                renderPage();
+            }
+        };
+
+        nextBtn.onclick = () => {
+            if (currentIndex + itemsPerPage < pollItems.length) {
+                currentIndex += itemsPerPage;
+                renderPage();
+            }
+        };
+
+        controls.appendChild(prevBtn);
+        controls.appendChild(nextBtn);
+        teacherPollsContainer.after(controls);
+
+        currentIndex = 0;
+        renderPage();
+
+    } catch (err) {
+        console.error("Ошибка загрузки опросов преподавателя:", err);
+        teacherPollsContainer.innerHTML = "<p>Не удалось загрузить опросы.</p>";
+    }
+}
+
+async function createPollDiv(poll) {
+    const pollDiv = document.createElement("div");
+    pollDiv.classList.add("poll-item");
+    pollDiv.innerHTML = `<strong>${poll.question}</strong>`;
+
+    const votesResponse = await fetch(`http://localhost:8079/blockchain/results?pollId=${poll.id}`);
+    const votesData = await votesResponse.json();
+    const totalVotes = Object.values(votesData).reduce((sum, val) => sum + val, 0);
+
+    if (totalVotes === 0) {
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Редактировать";
+        editBtn.classList.add("submit-btn");
+        editBtn.onclick = () => openEditModal(poll);
+        pollDiv.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Удалить опрос";
+        deleteBtn.classList.add("close-btn");
+        deleteBtn.style.marginTop = "10px";
+        deleteBtn.onclick = async () => {
+            if (confirm("Вы уверены, что хотите удалить этот опрос?")) {
+                try {
+                    const response = await fetch(`http://localhost:8080/polls/${poll.id}`, {
+                        method: "DELETE"
+                    });
+                    if (response.ok) {
+                        pollDiv.remove();
+                        loadTeacherPollsWithEdit();
+                    } else {
+                        alert("Ошибка при удалении опроса");
+                    }
+                } catch (err) {
+                    console.error("Ошибка при удалении опроса:", err);
+                    alert("Произошла ошибка при удалении опроса.");
+                }
+            }
+        };
+        pollDiv.appendChild(deleteBtn);
+    } else {
+        const note = document.createElement("p");
+        note.textContent = "Редактирование недоступно (уже есть голоса)";
+        note.style.color = "gray";
+        pollDiv.appendChild(note);
+    }
+
+    return pollDiv;
+}
 
 async function loadPollResults() {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -79,12 +196,14 @@ async function loadPollResults() {
     }
 
     try {
+        const pollsResultsContainer = document.getElementById("polls-results");
+        pollsResultsContainer.innerHTML = "";
+        const oldControls = document.querySelector(".poll-results-pagination-controls");
+        if (oldControls) oldControls.remove();
+
         const pollsResponse = await fetch("http://localhost:8080/polls");
         if (!pollsResponse.ok) throw new Error("Failed to fetch polls");
         const polls = await pollsResponse.json();
-
-        const pollsResultsContainer = document.getElementById("polls-results");
-        pollsResultsContainer.innerHTML = "";
 
         const teacherPolls = polls.filter(poll => poll.teacherId === user.id);
 
@@ -92,6 +211,10 @@ async function loadPollResults() {
             pollsResultsContainer.innerHTML = "<p>У вас нет созданных опросов для отображения результатов.</p>";
             return;
         }
+
+        const itemsPerPage = 3;
+        let currentIndex = 0;
+        const pollResultItems = [];
 
         for (const poll of teacherPolls) {
             const pollResultItem = document.createElement("div");
@@ -129,6 +252,29 @@ async function loadPollResults() {
 
                     optionBar(totalVotes, votes, optionResult, optionsResultsContainer);
                 }
+
+                const totalVotesText = document.createElement("p");
+                totalVotesText.style.color = "#aaa";
+                totalVotesText.textContent = `Всего проголосовало: ${totalVotes}`;
+                optionsResultsContainer.appendChild(totalVotesText);
+
+                const groupsText = document.createElement("p");
+                groupsText.style.color = "#aaa";
+                let groups = [];
+
+                if (Array.isArray(poll.visibleFor)) {
+                    groups = poll.visibleFor;
+                } else if (typeof poll.visibleFor === "string" && poll.visibleFor.trim() !== "") {
+                    groups = poll.visibleFor.split(",").map(g => g.trim());
+                }
+
+                if (groups.length === 0) {
+                    groupsText.textContent = "Опрос отправлен всем";
+                } else {
+                    groupsText.textContent = `Опрос отправлен группам: ${groups.join(", ")}`;
+                }
+
+                optionsResultsContainer.appendChild(groupsText);
             } else {
                 optionsResultsContainer.innerHTML = "<p>Пока нет голосов по этому опросу.</p>";
             }
@@ -139,53 +285,52 @@ async function loadPollResults() {
                     optionsResultsContainer.style.display === "none" ? "block" : "none";
             });
 
-            pollsResultsContainer.appendChild(pollResultItem);
+            pollResultItems.push(pollResultItem);
         }
+
+        const renderPage = () => {
+            pollsResultsContainer.innerHTML = "";
+            pollResultItems.forEach((el, i) => {
+                el.style.display = (i >= currentIndex && i < currentIndex + itemsPerPage) ? "block" : "none";
+                pollsResultsContainer.appendChild(el);
+            });
+
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex + itemsPerPage >= pollResultItems.length;
+        };
+
+        const controls = document.createElement("div");
+        controls.className = "poll-results-pagination-controls";
+
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "Назад";
+        prevBtn.disabled = true;
+        prevBtn.onclick = () => {
+            if (currentIndex > 0) {
+                currentIndex -= itemsPerPage;
+                renderPage();
+            }
+        };
+
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Вперёд";
+        nextBtn.onclick = () => {
+            if (currentIndex + itemsPerPage < pollResultItems.length) {
+                currentIndex += itemsPerPage;
+                renderPage();
+            }
+        };
+
+        controls.appendChild(prevBtn);
+        controls.appendChild(nextBtn);
+        pollsResultsContainer.after(controls);
+
+        currentIndex = 0;
+        renderPage();
+
     } catch (error) {
         console.error("Ошибка при загрузке результатов опросов:", error);
         document.getElementById("polls-results").innerHTML = "<p>Ошибка загрузки результатов.</p>";
-    }
-}
-
-async function loadTeacherPollsWithEdit() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const container = document.getElementById("teacher-polls-list");
-    container.innerHTML = "<p>Загрузка ваших опросов...</p>";
-
-    try {
-        const response = await fetch("http://localhost:8080/polls");
-        const polls = await response.json();
-
-        const myPolls = polls.filter(p => p.teacherId === user.id);
-        container.innerHTML = "";
-
-        for (const poll of myPolls) {
-            const pollDiv = document.createElement("div");
-            pollDiv.classList.add("poll-item");
-            pollDiv.innerHTML = `<strong>${poll.question}</strong>`;
-
-            const votesResponse = await fetch(`http://localhost:8079/blockchain/results?pollId=${poll.id}`);
-            const votesData = await votesResponse.json();
-            const totalVotes = Object.values(votesData).reduce((sum, val) => sum + val, 0);
-
-            if (totalVotes === 0) {
-                const editBtn = document.createElement("button");
-                editBtn.textContent = "Редактировать";
-                editBtn.style.marginLeft = "10px";
-                editBtn.onclick = () => openEditModal(poll);
-                pollDiv.appendChild(editBtn);
-            } else {
-                const note = document.createElement("p");
-                note.textContent = "Редактирование недоступно (уже есть голоса)";
-                note.style.color = "gray";
-                pollDiv.appendChild(note);
-            }
-
-            container.appendChild(pollDiv);
-        }
-    } catch (err) {
-        console.error("Ошибка загрузки опросов преподавателя:", err);
-        container.innerHTML = "<p>Не удалось загрузить опросы.</p>";
     }
 }
 

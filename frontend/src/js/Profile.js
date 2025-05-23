@@ -1,3 +1,8 @@
+const sexMap = {
+    Male: "Мужской",
+    Female: "Женский"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     loadUserData();
 });
@@ -12,7 +17,7 @@ async function loadUserData() {
     document.getElementById("name").textContent = user.name || "Неизвестно";
     document.getElementById("surname").textContent = user.surname || "Неизвестно";
     document.getElementById("lastName").textContent = user.lastName || "Неизвестно";
-    document.getElementById("sex").textContent = user.sex || "Неизвестно";
+    document.getElementById("sex").textContent = sexMap[user.sex] || "Неизвестно";
     document.getElementById("age").textContent = user.age || "Неизвестно";
     document.getElementById("email").textContent = user.email || "Неизвестно";
     document.getElementById("role").textContent = user.role === "student" ? "Студент" : "Преподаватель";

@@ -265,4 +265,4 @@ setInterval(() => {
         loadStudentPolls(userIdGlobal, studentGroupGlobal);
         loadStudentAnswers(userIdGlobal);
     }
-}, 60000);
+}, 120000);
