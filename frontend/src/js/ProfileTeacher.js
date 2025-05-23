@@ -62,10 +62,9 @@ async function createPoll() {
     }
 }
 
-
 async function loadTeacherPollsWithEdit() {
     const user = JSON.parse(localStorage.getItem("user"));
-    teacherPollsContainer = document.getElementById("teacher-polls-list");
+    const teacherPollsContainer = document.getElementById("teacher-polls-list");
     teacherPollsContainer.innerHTML = "<p>Загрузка ваших опросов...</p>";
 
     const oldControls = document.querySelector(".pagination-controls");
@@ -76,6 +75,11 @@ async function loadTeacherPollsWithEdit() {
         const polls = await response.json();
         const myPolls = polls.filter(p => p.teacherId === user.id);
         pollItems = [];
+
+        if (myPolls.length === 0) {
+            teacherPollsContainer.innerHTML = "<p>У вас нет созданных опросов.</p>";
+            return;
+        }
 
         for (const poll of myPolls) {
             const pollDiv = await createPollDiv(poll);
@@ -91,16 +95,34 @@ async function loadTeacherPollsWithEdit() {
         const nextBtn = document.createElement("button");
         nextBtn.textContent = "Вперёд";
 
-        renderPage = () => {
-            teacherPollsContainer.innerHTML = "";
-            pollItems.forEach((el, i) => {
-                el.style.display = (i >= currentIndex && i < currentIndex + itemsPerPage) ? "block" : "none";
-                teacherPollsContainer.appendChild(el);
+        if (pollItems.length <= itemsPerPage) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+        }
+
+        currentIndex = 0;
+
+        function renderPage() {
+            const currentItems = Array.from(teacherPollsContainer.children);
+
+            currentItems.forEach(item => {
+                item.classList.remove("visible");
             });
 
-            prevBtn.disabled = currentIndex === 0;
-            nextBtn.disabled = currentIndex + itemsPerPage >= pollItems.length;
-        };
+            setTimeout(() => {
+                teacherPollsContainer.innerHTML = "";
+
+                const itemsToShow = pollItems.slice(currentIndex, currentIndex + itemsPerPage);
+                itemsToShow.forEach(el => {
+                    el.classList.remove("visible");
+                    teacherPollsContainer.appendChild(el);
+                    requestAnimationFrame(() => el.classList.add("visible"));
+                });
+
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex + itemsPerPage >= pollItems.length;
+            }, 500);
+        }
 
         prevBtn.onclick = () => {
             if (currentIndex > 0) {
@@ -120,7 +142,6 @@ async function loadTeacherPollsWithEdit() {
         controls.appendChild(nextBtn);
         teacherPollsContainer.after(controls);
 
-        currentIndex = 0;
         renderPage();
 
     } catch (err) {
@@ -128,6 +149,7 @@ async function loadTeacherPollsWithEdit() {
         teacherPollsContainer.innerHTML = "<p>Не удалось загрузить опросы.</p>";
     }
 }
+
 
 async function createPollDiv(poll) {
     const pollDiv = document.createElement("div");
@@ -200,6 +222,7 @@ async function loadPollResults() {
     try {
         const pollsResultsContainer = document.getElementById("polls-results");
         pollsResultsContainer.innerHTML = "";
+
         const oldControls = document.querySelector(".poll-results-pagination-controls");
         if (oldControls) oldControls.remove();
 
@@ -208,7 +231,6 @@ async function loadPollResults() {
         const polls = await pollsResponse.json();
 
         const teacherPolls = polls.filter(poll => poll.teacherId === user.id);
-
         if (teacherPolls.length === 0) {
             pollsResultsContainer.innerHTML = "<p>У вас нет созданных опросов для отображения результатов.</p>";
             return;
@@ -270,11 +292,9 @@ async function loadPollResults() {
                     groups = poll.visibleFor.split(",").map(g => g.trim());
                 }
 
-                if (groups.length === 0) {
-                    groupsText.textContent = "Опрос отправлен всем";
-                } else {
-                    groupsText.textContent = `Опрос отправлен группам: ${groups.join(", ")}`;
-                }
+                groupsText.textContent = groups.length === 0
+                    ? "Опрос отправлен всем"
+                    : `Опрос отправлен группам: ${groups.join(", ")}`;
 
                 optionsResultsContainer.appendChild(groupsText);
             } else {
@@ -291,14 +311,22 @@ async function loadPollResults() {
         }
 
         const renderPage = () => {
-            pollsResultsContainer.innerHTML = "";
-            pollResultItems.forEach((el, i) => {
-                el.style.display = (i >= currentIndex && i < currentIndex + itemsPerPage) ? "block" : "none";
-                pollsResultsContainer.appendChild(el);
-            });
+            const currentItems = Array.from(pollsResultsContainer.children);
+            currentItems.forEach(item => item.classList.remove("visible"));
 
-            prevBtn.disabled = currentIndex === 0;
-            nextBtn.disabled = currentIndex + itemsPerPage >= pollResultItems.length;
+            setTimeout(() => {
+                pollsResultsContainer.innerHTML = "";
+                const visibleItems = pollResultItems.slice(currentIndex, currentIndex + itemsPerPage);
+
+                visibleItems.forEach(el => {
+                    el.classList.remove("visible");
+                    pollsResultsContainer.appendChild(el);
+                    requestAnimationFrame(() => el.classList.add("visible"));
+                });
+
+                prevBtn.disabled = currentIndex === 0;
+                nextBtn.disabled = currentIndex + itemsPerPage >= pollResultItems.length;
+            }, 500);
         };
 
         const controls = document.createElement("div");
@@ -307,6 +335,15 @@ async function loadPollResults() {
         const prevBtn = document.createElement("button");
         prevBtn.textContent = "Назад";
         prevBtn.disabled = true;
+
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Вперёд";
+
+        if (pollResultItems.length <= itemsPerPage) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+        }
+
         prevBtn.onclick = () => {
             if (currentIndex > 0) {
                 currentIndex -= itemsPerPage;
@@ -314,8 +351,6 @@ async function loadPollResults() {
             }
         };
 
-        const nextBtn = document.createElement("button");
-        nextBtn.textContent = "Вперёд";
         nextBtn.onclick = () => {
             if (currentIndex + itemsPerPage < pollResultItems.length) {
                 currentIndex += itemsPerPage;
@@ -327,7 +362,6 @@ async function loadPollResults() {
         controls.appendChild(nextBtn);
         pollsResultsContainer.after(controls);
 
-        currentIndex = 0;
         renderPage();
 
     } catch (error) {
